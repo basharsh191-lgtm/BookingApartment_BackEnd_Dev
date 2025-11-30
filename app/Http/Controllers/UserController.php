@@ -62,7 +62,7 @@ class UserController extends Controller
                 'message' => 'Account awaiting admin approval'
             ], 403);
         }
-         else if ($user->is_approved==-1) {
+        else if ($user->is_approved==-1) {
             Auth::logout();
             return response()->json([
                 'message' => 'تم رفض طلبك من قبل الادمن '
