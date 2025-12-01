@@ -1,0 +1,84 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\Booking;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class TenantController extends Controller
+{
+
+    // عرض كل الحجوزات للمستأجر
+    public function tenantBookings(): JsonResponse
+    {
+        $bookings = Booking::where('tenant_id', auth()->id())->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'جميع حجوزاتك',
+            'data' => $bookings
+        ]);
+    }
+    public function cancel($id): JsonResponse
+    {
+        $booking = Booking::find($id);
+
+        if (!$booking) {
+            return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
+        }
+
+        // تحقق أن المستأجر هو من أنشأ الحجز
+        if ($booking->tenant_id != auth()->id()) {
+            return response()->json(['status'=>false,'message'=>'غير مصرح لك بإلغاء هذا الحجز'],403);
+        }
+
+        $booking->update(['status' => 'cancelled']);
+
+        return response()->json(['status'=>true,'message'=>'تم إلغاء الحجز بنجاح']);
+    }
+    public function updateBooking(Request $request, $id): JsonResponse
+    {
+        $booking = Booking::find($id);
+
+        if (!$booking) {
+            return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
+        }
+
+        if ($booking->tenant_id != auth()->id()) {
+            return response()->json(['status'=>false,'message'=>'غير مصرح لك بتعديل هذا الحجز'],403);
+        }
+
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $apartment = $booking->apartment;
+        $start = \Carbon\Carbon::parse($request->start_date);
+        $end = \Carbon\Carbon::parse($request->end_date);
+        $availableStart = \Carbon\Carbon::parse($apartment->available_from);
+        $availableEnd = \Carbon\Carbon::parse($apartment->available_to);
+
+        if ($start < $availableStart || $end > $availableEnd) {
+            return response()->json([
+                'status'=>false,
+                'message'=>'مدة الحجز تتجاوز فترة توافر الشقة!'
+            ],400);
+        }
+
+        $days = $start->diffInDays($end) + 1;
+        $dailyPrice = $apartment->price / 30;
+        $totalPrice = $dailyPrice * $days;
+
+        $booking->update([
+            'start_date'=>$request->start_date,
+            'end_date'=>$request->end_date,
+            'total_price'=>$totalPrice,
+            'status'=>'pending'
+        ]);
+
+        return response()->json(['status'=>true,'message'=>'تم تعديل الحجز بنجاح','data'=>$booking]);
+    }
+}
