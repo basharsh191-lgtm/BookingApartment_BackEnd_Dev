@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Symfony\Component\HttpKernel\Profiler\Profile;
 
 class User extends Authenticatable
 {
@@ -47,5 +48,9 @@ class User extends Authenticatable
     public function Apartment_detail(): HasMany
     {
         return $this->hasMany(apartment_detail::class);
+    }
+     public function profile()
+    {
+        return $this->hasOne(Profile::class);
     }
 }

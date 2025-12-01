@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('ProfileImage')->nullable();
             $table->string('BirthDate');
             $table->string('CardImage')->nullable();
-            $table->enum('role',['renter','owner'])->default('renter');
             $table->boolean('is_approved')->default(0);
             $table->string('user_type')->default('user');
             $table->rememberToken();
