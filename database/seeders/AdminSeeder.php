@@ -7,7 +7,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class AdmainSeeder extends Seeder
+class AdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -17,7 +17,7 @@ class AdmainSeeder extends Seeder
             User::create([
             'FirstName' => 'System',
             'LastName' => 'Admin',
-            'mobail' => '0999999999',
+            'mobile' => '0999999999',
             'password' => Hash::make('123456789'),
             'ProfileImage' => null,
             'BirthDate' => '1990-01-01',
@@ -28,7 +28,7 @@ class AdmainSeeder extends Seeder
         User::create([
             'FirstName' => 'Bashar',
             'LastName' => 'Al_Shayyah',
-            'mobail' => '0969227248',
+            'mobile' => '0969227248',
             'password' => Hash::make('1122334455'),
             'ProfileImage' => null,
             'BirthDate' => '1990-01-01',
@@ -39,7 +39,7 @@ class AdmainSeeder extends Seeder
         User::create([
             'FirstName' => 'Ali',
             'LastName' => 'Ali',
-            'mobail' => '0999459222',
+            'mobile' => '0999459222',
             'password' => Hash::make('1122334455'),
             'ProfileImage' => null,
             'BirthDate' => '1990-01-01',

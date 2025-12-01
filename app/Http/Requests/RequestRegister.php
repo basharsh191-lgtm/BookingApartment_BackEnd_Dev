@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class RequestRegister extends FormRequest
@@ -17,14 +18,14 @@ class RequestRegister extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
         'FirstName'=>'required|string|max:255',
         'LastName'=>'required|string|max:255',
-        'mobail'=>'required|string|min:10|unique:users,mobail',
+        'mobile'=>'required|string|min:10|unique:users,mobile',
         'password'=>'required|string|max:15|confirmed',
         'ProfileImage'=>'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
         'BirthDate'=>'required|date|before:today',

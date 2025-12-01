@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RequestRegister;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    public function register(RequestRegister $request)
+    public function register(RequestRegister $request): JsonResponse
     {
         $validate=$request->validated();
         if($request->hasFile('ProfileImage'))
@@ -27,7 +28,7 @@ class UserController extends Controller
         $user=User::create([
             'FirstName'=>$request->FirstName,
             'LastName'=>$request->LastName,
-            'mobail'=>$request->mobail,
+            'mobile'=>$request->mobile,
             'password'=>Hash::make($request->password),
             'ProfileImage'=>$request->ProfileImage,
             'BirthDate'=>$request->BirthDate,
@@ -41,20 +42,20 @@ class UserController extends Controller
             'approved' => false
         ], 200);
     }
-    public function login(Request $request)
+    public function login(Request $request): JsonResponse
     {
         $request->validate([
-        'mobail'=>'required|string',
+        'mobile'=>'required|string',
         'password'=>'required|string|max:15',
         ]);
-        if(!Auth::attempt($request->only('mobail','password')))
+        if(!Auth::attempt($request->only('mobile','password')))
         {
             return response()->json([
                 'massage'=>'Invalid phone of number or password'
             ], 401);
         }
 
-        $user=User::where('mobail',$request->mobail)->firstOrFail();
+        $user=User::where('mobile',$request->mobile)->firstOrFail();
 
     if (!$user->is_approved) {
             Auth::logout();
@@ -62,7 +63,7 @@ class UserController extends Controller
                 'message' => 'Account awaiting admin approval'
             ], 403);
         }
-         else if ($user->is_approved==-1) {
+        else if ($user->is_approved==-1) {
             Auth::logout();
             return response()->json([
                 'message' => 'تم رفض طلبك من قبل الادمن '
@@ -72,7 +73,7 @@ class UserController extends Controller
         $token = $user->createToken('auth_Token')->plainTextToken;
         return response()->json(['message' => 'Account log in successfully !', 'user' => $user, "Token" => $token], 200);
     }
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
             $request->user()->currentAccessToken()->delete();
             return response()->json(['message' => 'The logged out successfully'], 200);

@@ -2,33 +2,58 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
+use App\Http\Controllers\Api\OwnerController;
+use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('auth:sanctum')->group(function(){
-Route::get('/admin/users', [AdminController::class, 'pendingUsers']);//عرض كل يلي ما نقبلو
-Route::get('/admin/Allusers', [AdminController::class, 'AllUsers']);//عرض الكل المقبولين والغير مقبولين
-Route::post('/admin/users/approve/{id}', [AdminController::class, 'approve']);//قبول يوزر واحد محدد
-Route::post('/admin/users/approveAll', [AdminController::class, 'approveAll']);//قبول الكل
-Route::post('/admin/users/rejected/{id}', [AdminController::class, 'rejected']);//رفض واحد محدد
-Route::post('/admin/users/rejectedAll', [AdminController::class, 'rejectedAll']);//رفض الكل
-Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUsers']);//حذف مستخدم معين
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/admin/users', [AdminController::class, 'pendingUsers']);//عرض كل يلي ما نقبلو
+    Route::get('/admin/Allusers', [AdminController::class, 'AllUsers']);//عرض الكل المقبولين والغير مقبولين
+    Route::post('/admin/users/approve/{id}', [AdminController::class, 'approve']);//قبول يوزر واحد محدد
+    Route::post('/admin/users/approveAll', [AdminController::class, 'approveAll']);//قبول الكل
+    Route::post('/admin/users/rejected/{id}', [AdminController::class, 'rejected']);//رفض واحد محدد
+    Route::post('/admin/users/rejectedAll', [AdminController::class, 'rejectedAll']);//رفض الكل
+    Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUsers']);//حذف مستخدم معين
 });
 
 
-Route::post('register',[UserController::class,'register']);
-Route::post('login',[UserController::class,'login']);
-Route::post('logout',[UserController::class,'logout'])->middleware('auth:sanctum');
+Route::post('register', [UserController::class, 'register']);
+Route::post('login', [UserController::class, 'login']);
+Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
+// شقق المالك (OwnerController)
+Route::middleware('auth:sanctum')->group(function () {
+    // إضافة شقة جديدة
+    Route::post('/owner/apartments', [OwnerController::class, 'store']);
+    // تعديل بيانات الشقة
+    Route::patch('/owner/apartments/{apartment_details}', [OwnerController::class, 'update']);
+    // تعديل فترة التوافر للشقة
+    Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerController::class, 'setAvailability']);
+    // حذف الشقة
+    Route::delete('/owner/apartments/{apartment_details}', [OwnerController::class, 'destroy']);
+    // الموافقة على حجز
+    Route::patch('/owner/bookings/{id}/approve', [OwnerController::class, 'approve']);
+    // رفض الحجز
+    Route::patch('/owner/bookings/{id}/reject', [OwnerController::class, 'reject']);
+    // عرض كل الحجوزات الخاصة بالمالك
+    Route::get('/owner/bookings', [OwnerController::class, 'ownerBookings']);
+});
 
-Route::get('apartments', [ApartmentController::class, 'index']); // all apartments
-Route::post('apartments', [ApartmentController::class, 'store']);// add apartment
-Route::get('apartments/{apartment_details}', [ApartmentController::class, 'show']);// show specific apartment
-Route::put('apartments/{apartment_details}', [ApartmentController::class, 'update']);// update all information about specific apartment
-Route::patch('apartments/{apartment_details}', [ApartmentController::class, 'update']);// change specific information
-Route::delete('apartments/{apartment_details}', [ApartmentController::class, 'destroy']);
-Route::patch('apartments/{apartment_details}/availability', [ApartmentController::class, 'setAvailability']);// change time
+// المستأجر (TenantController)
+Route::middleware('auth:sanctum')->group(function () {
+    // عرض جميع حجوزات المستأجر
+    Route::get('/tenant/bookings', [TenantController::class, 'tenantBookings']);
+    // إلغاء حجز
+    Route::patch('/tenant/bookings/{id}/cancel', [TenantController::class, 'cancel']);
+    // تعديل حجز
+    Route::patch('/tenant/bookings/{id}/update', [TenantController::class, 'updateBooking']);
+});
+// عرض الشقق (ApartmentController)
+Route::get('/apartments', [ApartmentController::class, 'index']);
+Route::get('/apartments/{apartment_details}', [ApartmentController::class, 'show']);
+
 
 
 

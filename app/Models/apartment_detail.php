@@ -4,30 +4,35 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Apartment_detail extends Model
+class apartment_detail extends Model
 {
-    protected $table = 'department_details';
+    protected $table = 'apartment_details';
 
-    protected $primaryKey = 'department_id';
+    protected $primaryKey = 'apartment_id';
 
     protected $fillable = [
         'owner_id',
-        'department_description',
+        'apartment_description',
+        'floorNumber',
+        'roomNumber',
         'image',
-        'start_date',
-        'end_date',
+        'available_from',
+        'available_to',
         'governorate',
         'area',
         'price',
+        'is_furnished',
+        'status',
     ];
 
     protected $casts = [
         'image' => 'array',
-        'start_date' => 'date',
-        'end_date' => 'date',
-        'area' => 'decimal:2',
+        'available_from' => 'date',
+        'available_to' => 'date',
         'price' => 'decimal:2',
+        'is_furnished' => 'boolean',
     ];
+
 
     public function user()
     {

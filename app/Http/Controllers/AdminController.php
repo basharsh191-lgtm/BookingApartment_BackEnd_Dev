@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-
+use \Illuminate\Http\JsonResponse;
 class AdminController extends Controller
 {
-    public function pendingUsers()
+    public function pendingUsers(): JsonResponse
     {
         $users = User::where('is_approved', 0)->get();
 
@@ -17,8 +17,8 @@ class AdminController extends Controller
             'data' => $users
         ]);
     }
-     public function AllUsers()
-    {
+     public function AllUsers(): JsonResponse
+     {
         $users = User::where('user_type'==!'admin')->get();
 
         return response()->json([
@@ -28,7 +28,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function approve($id)
+    public function approve($id): JsonResponse
     {
         $user = User::find($id);
 
@@ -48,7 +48,7 @@ class AdminController extends Controller
         ]);
     }
 
-    public function approveAll()
+    public function approveAll(): JsonResponse
     {
        $users = User::where('user_type'==!'admin')->get();
 
@@ -62,8 +62,8 @@ class AdminController extends Controller
             'message' => 'تمت الموافقة على جميع المستخدمين بنجاح'
         ]);
     }
-      public function rejected($id)
-    {
+      public function rejected($id): JsonResponse
+      {
         $user = User::find($id);
 
         if (!$user) {
@@ -81,7 +81,7 @@ class AdminController extends Controller
             'message' => 'تمت رفض طلب المستخدم بنجاح'
         ]);
     }
-    public function rejectedAll()
+    public function rejectedAll(): JsonResponse
     {
        $users = User::where('user_type'==!'admin')->get();
 
@@ -92,11 +92,11 @@ class AdminController extends Controller
        }
   return response()->json([
             'status' => true,
-            'message' => 'تمت رقض  جميع المستخدمين بنجاح'
+            'message' => 'تمت رفض  جميع المستخدمين بنجاح'
         ]);
     }
-     public function deleteUsers($id)
-    {
+     public function deleteUsers($id): JsonResponse
+     {
        $user=User::find($id);
         if (!$user) {
             return response()->json([
