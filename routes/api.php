@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('register', [UserController::class, 'register']);
 Route::post('login', [UserController::class, 'login']);
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+
+
 
 Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
@@ -54,4 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::get('/apartments', [ApartmentController::class, 'index']);
 Route::get('/apartments/{apartment_details}', [ApartmentController::class, 'show']);
 
+Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
+Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
+Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);

@@ -19,13 +19,14 @@ return new class extends Migration
                 $table->integer('floorNumber');
                 $table->integer('roomNumber');
                 $table->boolean('is_furnished');
-                $table->string('image');
+                $table->string('image')->nullable();
                 $table->date('available_from');
                 $table->date('available_to');
                 $table->enum('status', ['available', 'not_available'])->default('available');
                 $table->string('governorate', 50);
+                $table->string('city');
                 $table->float('area');
-                $table->decimal('price');
+                $table->decimal('price',10,2);
                 $table->timestamps();
             });
     }

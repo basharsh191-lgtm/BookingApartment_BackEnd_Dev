@@ -43,6 +43,7 @@ class ProfileController extends Controller
             ], 422);
         }
         $profile->update($validate);
+        
         $profile->makeHidden(['user_type','is_approved','created_at','updated_at']);
         return response()->json([
             'message' => 'The profile successfully displayed.',

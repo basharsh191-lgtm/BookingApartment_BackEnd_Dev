@@ -19,6 +19,7 @@ class apartment_detail extends Model
         'available_from',
         'available_to',
         'governorate',
+        'city',
         'area',
         'price',
         'is_furnished',
