@@ -23,13 +23,12 @@ class OwnerController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'area' => 'required',
             'price' => 'required',
             'floorNumber'=> 'required',
             'roomNumber'=> 'required',
             'image' =>  'required|image|mimes:jpeg,png,jpg,gif',
-            'owner_id' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'governorate' => 'required|string',
@@ -40,6 +39,7 @@ class OwnerController extends Controller
             $imagePath = $request->file('image')->store('apartments', 'public');
             $request->merge(['image' => $imagePath]);
         }
+        $validated['owner_id'] = auth()->id();
         $detail = apartment_detail::create($request->all());
 
         return response()->json($detail, 201);
