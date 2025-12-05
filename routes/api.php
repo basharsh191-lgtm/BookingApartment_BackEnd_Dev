@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -61,3 +62,6 @@ Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
 Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
+Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
+Route::post('/apartment/toggleFavorit/{apartmentId}',[TenantController::class,'toggleFavorit'])->middleware('auth:sanctum');
+Route::get('/apartment/showFavorit',[TenantController::class,'showFavorit'])->middleware('auth:sanctum');

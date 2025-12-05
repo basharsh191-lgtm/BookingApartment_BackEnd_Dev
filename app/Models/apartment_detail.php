@@ -8,7 +8,7 @@ class apartment_detail extends Model
 {
     protected $table = 'apartment_details';
 
-    protected $primaryKey = 'apartment_id';
+   // protected $primaryKey = 'apartment_id';
 
     protected $fillable = [
         'owner_id',
@@ -38,5 +38,13 @@ class apartment_detail extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+    public function rating()
+    {
+        return $this->hasOne(Rating::class);
+    }
+    public function favorit()
+    {
+        return $this->hasMany(favorit::class);
     }
 }

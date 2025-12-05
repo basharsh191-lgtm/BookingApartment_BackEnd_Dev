@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\apartment_detail;
 use App\Models\Booking;
+use App\Models\favorit;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TenantController extends Controller
 {
@@ -80,5 +83,51 @@ class TenantController extends Controller
         ]);
 
         return response()->json(['status'=>true,'message'=>'تم تعديل الحجز بنجاح','data'=>$booking]);
+    }
+    // public function addToFavorit($apartmentId)
+    // {
+    //     $user_id=Auth::id();
+    //     apartment_detail::findOrFail($apartmentId);
+    //     favorit::create([
+    //         'user_id'=>$user_id,
+    //         'apartment_id'=>$apartmentId
+    //     ]);
+    //     return response()->json([
+    //     'status'=>true,
+    //     'massege'=>'Add favorti succssfully'
+    // ], 200);
+    // }
+    //هاد تابع للاضافة والازالة نستعمله مع ايقونة القلب
+
+    public function toggleFavorit($apartment_id)
+    {
+        $user_id=Auth::id();
+        $favorit=favorit::where('user_id',$user_id)->where('apartment_id',$apartment_id)->first();
+        if($favorit)
+        {
+            $favorit->delete();
+            return response()->json([
+                'statuse'=>true,
+                'message'=>'Removed form favorites'
+            ], 200);
+        }
+        favorit::create([
+            'user_id'=>$user_id,
+            'apartment_id'=>$apartment_id
+        ]);
+        return response()->json([
+            'statuse'=>true,
+            'message'=>'Added to favorites'
+        ], 200);
+
+    }
+    public function showFavorit()
+    {
+        $favorit=favorit::with('apartment')->where('user_id',Auth::id())->get();
+        return response()->json([
+            'status'=>true,
+            'message'=>'Favorites fetched successfully',
+            'data'=>$favorit
+        ], 200);
     }
 }

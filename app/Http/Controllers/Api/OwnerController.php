@@ -7,6 +7,7 @@ use App\Models\apartment_detail;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OwnerController extends Controller
 {
@@ -24,16 +25,19 @@ class OwnerController extends Controller
     public function store(Request $request): JsonResponse
     {
         $request->validate([
+            'apartment_description' => 'required|string|min:10',
             'area' => 'required',
             'price' => 'required',
             'floorNumber'=> 'required',
             'roomNumber'=> 'required',
             'image' =>  'required|image|mimes:jpeg,png,jpg,gif',
-            'owner_id' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'governorate' => 'required|string',
-            'city'=>'required|string'
+            'city'=>'required|string',
+            'owner_id'=>'required',
+            'is_furnished'=>'required',
+
 
         ]);
         if ($request->hasFile('image')) {
@@ -59,6 +63,7 @@ class OwnerController extends Controller
     public function update(Request $request, apartment_detail $apartment_details): JsonResponse
     {
         $request->validate([
+
             'apartment_description' => 'string',
             'image' => 'image|mimes:jpeg,png,jpg,gif',
             'start_date' => 'date',
@@ -127,7 +132,7 @@ class OwnerController extends Controller
             ], 404);
         }
 
-        if ($booking->apartment->owner_id != auth()->id()) {
+        if ($booking->apartment->owner_id != Auth::id()) {
             return response()->json([
                 'status' => false,
                 'message' => 'غير مصرح لك بالموافقة على هذا الحجز'
@@ -155,7 +160,7 @@ class OwnerController extends Controller
             ], 404);
         }
 
-        if ($booking->apartment->owner_id != auth()->id()) {
+        if ($booking->apartment->owner_id !=Auth::id()) {
             return response()->json([
                 'status' => false,
                 'message' => 'غير مصرح لك برفض هذا الحجز'
@@ -175,7 +180,7 @@ class OwnerController extends Controller
     public function ownerBookings(): JsonResponse
     {
         $bookings = Booking::whereHas('apartment', function($q){
-            $q->where('owner_id', auth()->id());
+            $q->where('owner_id', Auth::id());
         })->get();
 
         return response()->json([
