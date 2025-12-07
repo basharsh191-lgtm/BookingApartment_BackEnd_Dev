@@ -53,4 +53,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Profile::class);
     }
+    public function rating()
+    {
+        return $this->hasOne(Rating::class);
+    }
+    public function favorit()
+    {
+        return $this->hasMany(Favorit::class);
+    }
 }

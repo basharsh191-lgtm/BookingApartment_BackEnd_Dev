@@ -24,7 +24,12 @@ class OwnerController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+// <<<<<<< HEAD
+//         $request->validate([
+//             'apartment_description' => 'required|string|min:10',
+//=======
         $validated = $request->validate([
+//>>>>>>> 1f86d529aa4c51508bfc080f1bc5c495f8693e58
             'area' => 'required',
             'price' => 'required',
             'floorNumber'=> 'required',
@@ -33,7 +38,10 @@ class OwnerController extends Controller
             'available_from' => 'required|date',
             'available_to' => 'required|date|after_or_equal:start_date',
             'governorate' => 'required|string',
-            'city'=>'required|string'
+            'city'=>'required|string',
+            'owner_id'=>'required',
+            'is_furnished'=>'required',
+
 
         ]);
         if ($request->hasFile('image')) {
@@ -60,6 +68,7 @@ class OwnerController extends Controller
     public function update(Request $request, apartment_detail $apartment_details): JsonResponse
     {
         $request->validate([
+
             'apartment_description' => 'string',
             'image' => 'image|mimes:jpeg,png,jpg,gif',
             'available_from' => 'date',
@@ -129,7 +138,7 @@ class OwnerController extends Controller
             ], 404);
         }
 
-        if ($booking->apartment->owner_id != auth()->id()) {
+        if ($booking->apartment->owner_id != Auth::id()) {
             return response()->json([
                 'status' => false,
                 'message' => 'غير مصرح لك بالموافقة على هذا الحجز'
@@ -157,7 +166,7 @@ class OwnerController extends Controller
             ], 404);
         }
 
-        if ($booking->apartment->owner_id != auth()->id()) {
+        if ($booking->apartment->owner_id !=Auth::id()) {
             return response()->json([
                 'status' => false,
                 'message' => 'غير مصرح لك برفض هذا الحجز'
@@ -177,7 +186,7 @@ class OwnerController extends Controller
     public function ownerBookings(): JsonResponse
     {
         $bookings = Booking::whereHas('apartment', function($q){
-            $q->where('owner_id', auth()->id());
+            $q->where('owner_id', Auth::id());
         })->get();
 
         return response()->json([
