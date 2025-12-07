@@ -8,7 +8,7 @@ class apartment_detail extends Model
 {
     protected $table = 'apartment_details';
 
-    protected $primaryKey = 'apartment_id';
+   // protected $primaryKey = 'apartment_id';
 
     protected $fillable = [
         'owner_id',
@@ -27,7 +27,7 @@ class apartment_detail extends Model
     ];
 
     protected $casts = [
-        'image' => 'array',
+        'image' => 'string',
         'available_from' => 'date',
         'available_to' => 'date',
         'price' => 'decimal:2',
@@ -37,6 +37,6 @@ class apartment_detail extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'owner_id');
     }
 }

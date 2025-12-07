@@ -7,6 +7,7 @@ use App\Models\apartment_detail;
 use App\Models\Booking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OwnerController extends Controller
 {
@@ -29,8 +30,8 @@ class OwnerController extends Controller
             'floorNumber'=> 'required',
             'roomNumber'=> 'required',
             'image' =>  'required|image|mimes:jpeg,png,jpg,gif',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'available_from' => 'required|date',
+            'available_to' => 'required|date|after_or_equal:start_date',
             'governorate' => 'required|string',
             'city'=>'required|string'
 
@@ -39,7 +40,7 @@ class OwnerController extends Controller
             $imagePath = $request->file('image')->store('apartments', 'public');
             $request->merge(['image' => $imagePath]);
         }
-        $validated['owner_id'] = auth()->id();
+        $validated['owner_id'] = Auth::id();
         $detail = apartment_detail::create($request->all());
 
         return response()->json($detail, 201);
@@ -61,8 +62,8 @@ class OwnerController extends Controller
         $request->validate([
             'apartment_description' => 'string',
             'image' => 'image|mimes:jpeg,png,jpg,gif',
-            'start_date' => 'date',
-            'end_date' => 'date|after_or_equal:start_date',
+            'available_from' => 'date',
+            'available_to' => 'date|after_or_equal:start_date',
             'governorate' => 'string|max:50',
             'area' => 'numeric',
             'price' => 'numeric',
@@ -70,8 +71,8 @@ class OwnerController extends Controller
 
         $data = $request->only([
             'apartment_description',
-            'start_date',
-            'end_date',
+            'available_from',
+            'available_to',
             'governorate',
             'area',
             'price',
@@ -89,13 +90,14 @@ class OwnerController extends Controller
     public function setAvailability(Request $request, apartment_detail $apartment_details): JsonResponse
     {
         $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'available_from' => 'required|date',
+            'available_to' => 'required|date|after_or_equal:start_date',
         ]);
         $apartment_details->update([
-            'start_date'=> $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-        ]);
+
+                'available_from' => $request->input('available_from'),
+                'available_to' => $request->input('available_to'),
+            ]);
         return response()->json([
             'message' => 'Availability updated successfully',
             'data' => $apartment_details,

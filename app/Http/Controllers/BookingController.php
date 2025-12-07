@@ -39,7 +39,7 @@ class BookingController extends Controller
         $totalPrice = $dailyPrice * $days;
 
         $booking = Booking::create([
-            'apartment_id' => $request->apartment_id,
+            'apartment_id' =>  auth()->id(),
             'tenant_id' => auth()->id(),
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
