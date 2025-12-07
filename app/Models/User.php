@@ -47,7 +47,7 @@ class User extends Authenticatable
     }
     public function Apartment_detail(): HasMany
     {
-        return $this->hasMany(apartment_detail::class);
+        return $this->hasMany(apartmentDetail::class);
     }
      public function profile()
     {

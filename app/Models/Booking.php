@@ -24,7 +24,7 @@ class Booking extends Model
 
     public function apartment(): BelongsTo
     {
-        return $this->belongsTo(apartment_detail::class, 'apartment_id');
+        return $this->belongsTo(apartmentDetail::class, 'apartment_id');
     }
 
     public function tenant(): BelongsTo

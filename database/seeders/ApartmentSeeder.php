@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\apartment_detail;
+use App\Models\apartmentDetail;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,7 +13,7 @@ class ApartmentSeeder extends Seeder
      */
     public function run(): void
     {
-        apartment_detail::create([
+        apartmentDetail::create([
             'owner_id' => 2,
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
@@ -27,7 +27,7 @@ class ApartmentSeeder extends Seeder
             'area' => 65.02,
             'price' => 100.20,
         ]);
-          apartment_detail::create([
+          apartmentDetail::create([
             'owner_id' => 3,
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
@@ -41,7 +41,7 @@ class ApartmentSeeder extends Seeder
             'area' => 65.02,
             'price' => 500.20,
         ]);
-         apartment_detail::create([
+         apartmentDetail::create([
             'owner_id' => 2,
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,

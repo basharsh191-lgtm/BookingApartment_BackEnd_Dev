@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\apartment_detail;
+use App\Models\apartmentDetail;
 use App\Models\Booking;
 use App\Models\favorit;
 use Illuminate\Http\JsonResponse;

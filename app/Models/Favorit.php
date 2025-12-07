@@ -14,6 +14,6 @@ class favorit extends Model
     }
     public function apartment()
     {
-        return $this->belongsTo(apartment_detail::class);
+        return $this->belongsTo(apartmentDetail::class);
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\apartment_detail;
+use App\Models\apartmentDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +18,7 @@ class BookingController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
-        $apartment = apartment_detail::find($request->apartment_id);
+        $apartment = apartmentDetail::find($request->apartment_id);
 
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);

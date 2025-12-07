@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\apartment_detail;
+use App\Models\apartmentDetail;
 use App\Models\Apartment_details;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,7 +15,7 @@ class ApartmentController extends Controller
      */
     public function index(): \Illuminate\Database\Eloquent\Collection
     {
-        return apartment_detail::all();
+        return apartmentDetail::all();
 
     }
 
@@ -27,9 +27,9 @@ class ApartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(apartment_detail $apartment_details): apartment_detail
+    public function show(apartmentDetail $apartmentDetail): apartmentDetail
     {
-        return $apartment_details;
+        return $apartmentDetail;
     }
 
     /**
@@ -44,14 +44,14 @@ class ApartmentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(apartment_detail $apartment_details)
+    public function destroy(apartmentDetail $apartmentDetail)
     {
      //
     }
 
     public function searchApartment(Request $request)
 {
-    $query = apartment_detail::query();
+    $query = apartmentDetail::query();
 
     if ($request->has('governorate') && $request->input('governorate') != '') {
         $query->where('governorate', 'LIKE', "%{$request->input('governorate')}%");
