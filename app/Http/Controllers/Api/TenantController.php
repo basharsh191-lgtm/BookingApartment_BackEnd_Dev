@@ -84,30 +84,18 @@ class TenantController extends Controller
 
         return response()->json(['status'=>true,'message'=>'تم تعديل الحجز بنجاح','data'=>$booking]);
     }
-    // public function addToFavorit($apartmentId)
-    // {
-    //     $user_id=Auth::id();
-    //     apartment_detail::findOrFail($apartmentId);
-    //     favorit::create([
-    //         'user_id'=>$user_id,
-    //         'apartment_id'=>$apartmentId
-    //     ]);
-    //     return response()->json([
-    //     'status'=>true,
-    //     'massege'=>'Add favorti succssfully'
-    // ], 200);
-    // }
+
     //هاد تابع للاضافة والازالة نستعمله مع ايقونة القلب
 
-    public function toggleFavorit($apartment_id)
+    public function toggleFavorite($apartment_id): JsonResponse
     {
         $user_id=Auth::id();
-        $favorit=favorit::where('user_id',$user_id)->where('apartment_id',$apartment_id)->first();
-        if($favorit)
+        $favorite=favorit::where('user_id',$user_id)->where('apartment_id',$apartment_id)->first();
+        if($favorite)
         {
-            $favorit->delete();
+            $favorite->delete();
             return response()->json([
-                'statuse'=>true,
+                'status'=>true,
                 'message'=>'Removed form favorites'
             ], 200);
         }
@@ -116,18 +104,18 @@ class TenantController extends Controller
             'apartment_id'=>$apartment_id
         ]);
         return response()->json([
-            'statuse'=>true,
+            'status'=>true,
             'message'=>'Added to favorites'
         ], 200);
 
     }
-    public function showFavorit()
+    public function showFavorite(): JsonResponse
     {
-        $favorit=favorit::with('apartment')->where('user_id',Auth::id())->get();
+        $favorite=favorit::with('apartment')->where('user_id',Auth::id())->get();
         return response()->json([
             'status'=>true,
             'message'=>'Favorites fetched successfully',
-            'data'=>$favorit
+            'data'=>$favorite
         ], 200);
     }
 }

@@ -27,7 +27,7 @@ class apartment_detail extends Model
     ];
 
     protected $casts = [
-        'image' => 'string',
+        'image' => 'array',
         'available_from' => 'date',
         'available_to' => 'date',
         'price' => 'decimal:2',

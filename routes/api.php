@@ -63,5 +63,5 @@ Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middlewa
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
 Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
-Route::post('/apartment/toggleFavorit/{apartmentId}',[TenantController::class,'toggleFavorit'])->middleware('auth:sanctum');
-Route::get('/apartment/showFavorit',[TenantController::class,'showFavorit'])->middleware('auth:sanctum');
+Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');
+Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite'])->middleware('auth:sanctum');
