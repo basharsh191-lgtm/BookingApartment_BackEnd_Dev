@@ -14,38 +14,49 @@ class TenantController extends Controller
 {
 
     // عرض كل الحجوزات للمستأجر
-    public function tenantBookings(): JsonResponse
-    {
-        $bookings = Booking::where('tenant_id', auth()->id())->get();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'جميع حجوزاتك',
-            'data' => $bookings
-        ]);
-    }
     public function cancel($id): JsonResponse
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
-            return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
+        if (!$booking || $booking->status === 'canceled') {
+            return response()->json(['status' => false, 'message' => 'الحجز غير موجود'], 404);
         }
 
         // تحقق أن المستأجر هو من أنشأ الحجز
         if ($booking->tenant_id != auth()->id()) {
-            return response()->json(['status'=>false,'message'=>'غير مصرح لك بإلغاء هذا الحجز'],403);
+            return response()->json(['status' => false, 'message' => 'غير مصرح لك بإلغاء هذا الحجز'], 403);
         }
 
-        $booking->update(['status' => 'cancelled']);
+        // إذا كان الحجز "بانتظار الموافقة" → نحذف مباشرة
+        if ($booking->status === 'pending') {
+            $booking->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'تم حذف الحجز قبل الموافقة'
+            ]);
+        }
+        // إذا كان الحجز موافَق عليه → نلغيه ونرسل إشعار للمالك
+        if ($booking->status === 'accepted') {
 
-        return response()->json(['status'=>true,'message'=>'تم إلغاء الحجز بنجاح']);
+            $booking->update(['status' => 'cancelled']);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'تم إلغاء الحجز وإعلام المالك'
+            ]);
+
+        }
+        // إذا كان مرفوض أو ملغي بالأصل
+        return response()->json(['status' => false,
+            'message' => 'لا يمكن إلغاء هذا الحجز'], 400);
+
     }
     public function updateBooking(Request $request, $id): JsonResponse
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
+        if (!$booking || $booking->status === 'canceled') {
             return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
         }
 
@@ -54,7 +65,7 @@ class TenantController extends Controller
         }
 
         $request->validate([
-            'start_date' => 'required|date',
+            'start_date' => 'date|nullable',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
@@ -82,7 +93,10 @@ class TenantController extends Controller
             'status'=>'pending'
         ]);
 
-        return response()->json(['status'=>true,'message'=>'تم تعديل الحجز بنجاح','data'=>$booking]);
+        return response()->json(['status'=>true,
+            'message'=>'تم تعديل الحجز بنجاح',
+            'data'=>$booking
+        ]);
     }
 
     //هاد تابع للاضافة والازالة نستعمله مع ايقونة القلب

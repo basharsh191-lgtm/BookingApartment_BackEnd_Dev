@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
@@ -26,7 +27,7 @@ Route::post('login', [UserController::class, 'login']);
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
 
 
-
+//المالك (OwnerController)
 Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
     Route::post('/owner/apartments', [OwnerController::class, 'store']);
@@ -46,22 +47,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // المستأجر (TenantController)
 Route::middleware('auth:sanctum')->group(function () {
+    // حجز شقة
+    Route::post('/bookings', [BookingController::class, 'store']);
     // عرض جميع حجوزات المستأجر
     Route::get('/tenant/bookings', [TenantController::class, 'tenantBookings']);
     // إلغاء حجز
     Route::patch('/tenant/bookings/{id}/cancel', [TenantController::class, 'cancel']);
     // تعديل حجز
     Route::patch('/tenant/bookings/{id}/update', [TenantController::class, 'updateBooking']);
+   //تقييم الشقة
+    Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
 });
 
 // عرض الشقق (ApartmentController)
 Route::get('/apartments', [ApartmentController::class, 'index']);
+//عرض تفاصيل الشقة
 Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']);
 
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
 Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
-Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
 Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');
 Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite'])->middleware('auth:sanctum');

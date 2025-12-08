@@ -67,7 +67,12 @@ class OwnerController extends Controller
             'area',
             'price',
         ]);
-
+        if ($apartmentDetail->owner_id != Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك بتعديل هذه الشقة'
+            ], 403);
+        }
         // رفع الصور الجديدة وإضافتها للمصفوفة
         if ($request->hasFile('images')) {
             $imagePaths = $apartmentDetail->images ?? [];
@@ -85,6 +90,12 @@ class OwnerController extends Controller
     // تعديل فترة التوافر للشقة
     public function setAvailability(Request $request, apartmentDetail $apartmentDetail): JsonResponse
     {
+        if ($apartmentDetail->owner_id != Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك بتعديل هذه الشقة'
+            ], 403);
+        }
         $request->validate([
             'available_from' => 'required|date',
             'available_to' => 'required|date|after_or_equal:available_from',
@@ -104,6 +115,12 @@ class OwnerController extends Controller
     // حذف الشقة
     public function destroy(apartmentDetail $apartmentDetail): JsonResponse
     {
+        if ($apartmentDetail->owner_id != Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك بتعديل هذه الشقة'
+            ], 403);
+        }
         $apartmentDetail->delete();
 
         return response()->json([
@@ -124,9 +141,38 @@ class OwnerController extends Controller
             return response()->json(['status' => false, 'message' => 'غير مصرح لك بالموافقة على هذا الحجز'], 403);
         }
 
-        $booking->update(['status' => 'approved']);
+        // التحقق من عدم وجود حجز آخر معتمد يتداخل معه
+        $overlap = Booking::where('apartment_id', $booking->apartment_id)
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($booking) {
+                $q->whereBetween('start_date', [$booking->start_date, $booking->end_date])
+                    ->orWhereBetween('end_date', [$booking->start_date, $booking->end_date])
+                    ->orWhereRaw('? BETWEEN start_date AND end_date', [$booking->start_date])
+                    ->orWhereRaw('? BETWEEN start_date AND end_date', [$booking->end_date]);
+            })
+            ->exists();
 
-        return response()->json(['status' => true, 'message' => 'تمت الموافقة على الحجز بنجاح', 'data' => $booking]);
+        if ($overlap) {
+            return response()->json([
+                'status' => false,
+                'message' => 'هناك حجز آخر موافَق عليه في نفس الفترة'
+            ], 409);
+        }
+
+        // الموافقة على الحجز
+        $booking->update(['status' => 'accepted']);
+
+        // تحديث فترة توافر الشقة بعد الموافقة فقط
+        $apartment = $booking->apartment;
+        $apartment->update([
+            'available_from' => date('Y-m-d', strtotime($booking->end_date . ' +1 day'))
+        ]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تمت الموافقة على الحجز بنجاح',
+            'data' => $booking
+        ]);
     }
 
     // رفض الحجز
