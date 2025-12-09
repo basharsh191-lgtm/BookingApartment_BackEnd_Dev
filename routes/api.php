@@ -4,9 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\OwnerNewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WonerNewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,19 +31,19 @@ Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanct
 
 Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
-    Route::post('/owner/apartments', [OwnerController::class, 'store']);
+    Route::post('/owner/apartments', [OwnerNewController::class, 'store']);
     // تعديل بيانات الشقة
-    Route::patch('/owner/apartments/{apartment_details}', [OwnerController::class, 'update']);
+    Route::patch('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
     // تعديل فترة التوافر للشقة
-    Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerController::class, 'setAvailability']);
+    Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerNewController::class, 'setAvailability']);
     // حذف الشقة
-    Route::delete('/owner/apartments/{apartment_details}', [OwnerController::class, 'destroy']);
+    Route::delete('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'destroy']);
     // الموافقة على حجز
-    Route::patch('/owner/bookings/{id}/approve', [OwnerController::class, 'approve']);
+    Route::patch('/owner/bookings/{id}/approve', [OwnerNewController::class, 'approve']);
     // رفض الحجز
-    Route::patch('/owner/bookings/{id}/reject', [OwnerController::class, 'reject']);
+    Route::patch('/owner/bookings/{id}/reject', [OwnerNewController::class, 'reject']);
     // عرض كل الحجوزات الخاصة بالمالك
-    Route::get('/owner/bookings', [OwnerController::class, 'ownerBookings']);
+    Route::get('/owner/bookings', [OwnerNewController::class, 'ownerBookings']);
 });
 
 // المستأجر (TenantController)

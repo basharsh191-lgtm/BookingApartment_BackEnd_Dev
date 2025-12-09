@@ -1,71 +1,46 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\apartment_detail;
 use App\Models\Booking;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class OwnerController extends Controller
+class OwnerNewController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request)
     {
-        //
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request): JsonResponse
-    {
-// <<<<<<< HEAD
-//         $request->validate([
-//             'apartment_description' => 'required|string|min:10',
-//=======
         $validated = $request->validate([
-//>>>>>>> 1f86d529aa4c51508bfc080f1bc5c495f8693e58
-            'area' => 'required',
-            'price' => 'required',
-            'floorNumber'=> 'required',
-            'roomNumber'=> 'required',
-            'image' =>  'required|image|mimes:jpeg,png,jpg,gif',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-            'governorate' => 'required|string',
-            'city'=>'required|string',
-            'owner_id'=>'required',
-            'is_furnished'=>'required',
-
-
+        'apartment_description' => 'required|string|max:255',
+        'floorNumber' => 'required|integer|min:0',
+        'roomNumber' => 'required|integer|min:1',
+        'is_furnished' => 'required|boolean',
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'available_from' => 'required|date|after_or_equal:today',
+        'available_to' => 'required|date|after_or_equal:available_from',
+        'city' => 'required|string|max:100',
+        'governorate' => 'required|string|max:100',
+        'area' => 'required|numeric|min:1',
+        'price' => 'required|numeric|min:0',
         ]);
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('image'))
+        {
             $imagePath = $request->file('image')->store('apartments', 'public');
-            $request->merge(['image' => $imagePath]);
+            $validated['image'] = $imagePath;
         }
+
         $validated['owner_id'] = Auth::id();
-        $detail = apartment_detail::create($request->all());
+        $detail = apartment_detail::create($validated);
 
-        return response()->json($detail, 201);
+        return response()->json([
+            'message' => 'تم إضافة الشقة بنجاح',
+            'data' => $detail,
+            'image_url' => asset('storage/' . $detail->image)
+        ], 201);
     }
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-
-    public function update(Request $request, apartment_detail $apartment_details): JsonResponse
+     public function update(Request $request, apartment_detail $apartment_details)
     {
         $request->validate([
 
@@ -95,38 +70,36 @@ class OwnerController extends Controller
 
         return response()->json($apartment_details);
     }
+public function setAvailability(Request $request, $id)
+{
+    $validated = $request->validate([
+        'available_from' => 'required|date|after_or_equal:today',
+        'available_to' => 'required|date|after_or_equal:available_from',
+    ]);
 
-    public function setAvailability(Request $request, apartment_detail $apartment_details): JsonResponse
-    {
-        $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ]);
-        $apartment_details->update([
-            'start_date'=> $request->input('start_date'),
-            'end_date' => $request->input('end_date'),
-        ]);
-        return response()->json([
-            'message' => 'Availability updated successfully',
-            'data' => $apartment_details,
-        ]);
-    }
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(apartment_detail $apartment_details): JsonResponse
-    {
-        $apartment_details->delete();
+    $apartment = apartment_detail::findOrFail($id);
 
-        return response()->json([
-            'message' => 'Apartment deleted successfully'
-        ], 200);
+    if ($apartment->owner_id !== Auth::id()) {
+        return response()->json(['error' => 'Unauthenticated 😊'], 403);
     }
 
+    $apartment->update($validated);
 
-
-    // المالك يوافق على الحجز
-    public function approve($id): JsonResponse
+    return response()->json([
+        'message' => 'Availability updated successfully',
+        'data' => $apartment
+    ]);
+}
+public function destroy($id)
+    {
+    $apartment=apartment_detail::where('id',$id)->where('owner_id',Auth::id())->firstOrFail();
+    $apartment->delete();
+    return response()->json([
+            'success' => true,
+            'message' => 'Availability deleted successfully'
+    ]);
+    }
+    public function approve($id)
     {
         $booking = Booking::find($id);
 
@@ -153,8 +126,7 @@ class OwnerController extends Controller
         ]);
     }
 
-    // المالك يرفض الحجز
-    public function reject($id): JsonResponse
+    public function reject($id)
     {
         $booking = Booking::find($id);
 
@@ -180,19 +152,23 @@ class OwnerController extends Controller
             'data' => $booking
         ]);
     }
-
-    // عرض كل الحجوزات للمالك
-    public function ownerBookings(): JsonResponse
+    public function ownerBookings()
     {
         $bookings = Booking::whereHas('apartment', function($q){
             $q->where('owner_id', Auth::id());
         })->get();
-
+        if ($bookings->isEmpty())
+        {
+            return response()->json([
+                'success' => true,
+                'message' => 'لا توجد حجوزات حالياً',
+                'data' => []
+            ]);
+        }
         return response()->json([
             'status' => true,
             'message' => 'جميع الحجوزات الخاصة بك',
             'data' => $bookings
         ]);
     }
-
 }

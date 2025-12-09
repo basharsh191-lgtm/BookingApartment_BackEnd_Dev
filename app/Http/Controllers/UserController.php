@@ -75,6 +75,7 @@ class UserController extends Controller
     }
     public function logout(Request $request): JsonResponse
     {
+        //- إذا كان المستخدم لديه عدة توكنات  فهذا يستهدف التوكن الحالي فقط
             $request->user()->currentAccessToken()->delete();
             return response()->json(['message' => 'The logged out successfully'], 200);
     }
