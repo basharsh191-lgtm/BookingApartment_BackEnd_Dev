@@ -4,11 +4,9 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
-<<<<<<< HEAD
-use App\Http\Controllers\OwnerNewController;
-=======
 use App\Http\Controllers\BookingController;
->>>>>>> 84ffdf7a2cdb3d9fe5f93f90797a757d961f0d2e
+use App\Http\Controllers\OwnerNewController;
+
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
@@ -39,19 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
     Route::post('/owner/apartments', [OwnerNewController::class, 'store']);
     // تعديل بيانات الشقة
-<<<<<<< HEAD
+
     Route::patch('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
     // تعديل فترة التوافر للشقة
     Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerNewController::class, 'setAvailability']);
     // حذف الشقة
     Route::delete('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'destroy']);
-=======
-    Route::patch('/owner/apartments/{apartmentDetail}', [OwnerController::class, 'update']);
-    // تعديل فترة التوافر للشقة
-    Route::patch('/owner/apartments/{apartmentDetail}/availability', [OwnerController::class, 'setAvailability']);
-    // حذف الشقة
-    Route::delete('/owner/apartments/{apartmentDetail}', [OwnerController::class, 'destroy']);
->>>>>>> 84ffdf7a2cdb3d9fe5f93f90797a757d961f0d2e
+
     // الموافقة على حجز
     Route::patch('/owner/bookings/{id}/approve', [OwnerNewController::class, 'approve']);
     // رفض الحجز
