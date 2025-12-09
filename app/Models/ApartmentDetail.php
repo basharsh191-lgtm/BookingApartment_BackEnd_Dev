@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class apartment_detail extends Model
+class apartmentDetail extends Model
 {
     protected $table = 'apartment_details';
 
@@ -37,9 +37,9 @@ class apartment_detail extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'owner_id');
     }
-    public function rating()
+    public function rating(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(Rating::class);
     }

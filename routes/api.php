@@ -4,7 +4,11 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
+<<<<<<< HEAD
 use App\Http\Controllers\OwnerNewController;
+=======
+use App\Http\Controllers\BookingController;
+>>>>>>> 84ffdf7a2cdb3d9fe5f93f90797a757d961f0d2e
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
@@ -26,18 +30,28 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('register', [UserController::class, 'register']);
 Route::post('login', [UserController::class, 'login']);
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/forgot-password/send-otp', [UserController::class, 'sendOtpForForgotPassword']);
+Route::post('/forgot-password/reset', [UserController::class, 'resetPassword']);
 
 
-
+//المالك (OwnerController)
 Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
     Route::post('/owner/apartments', [OwnerNewController::class, 'store']);
     // تعديل بيانات الشقة
+<<<<<<< HEAD
     Route::patch('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
     // تعديل فترة التوافر للشقة
     Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerNewController::class, 'setAvailability']);
     // حذف الشقة
     Route::delete('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'destroy']);
+=======
+    Route::patch('/owner/apartments/{apartmentDetail}', [OwnerController::class, 'update']);
+    // تعديل فترة التوافر للشقة
+    Route::patch('/owner/apartments/{apartmentDetail}/availability', [OwnerController::class, 'setAvailability']);
+    // حذف الشقة
+    Route::delete('/owner/apartments/{apartmentDetail}', [OwnerController::class, 'destroy']);
+>>>>>>> 84ffdf7a2cdb3d9fe5f93f90797a757d961f0d2e
     // الموافقة على حجز
     Route::patch('/owner/bookings/{id}/approve', [OwnerNewController::class, 'approve']);
     // رفض الحجز
@@ -48,22 +62,26 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // المستأجر (TenantController)
 Route::middleware('auth:sanctum')->group(function () {
+    // حجز شقة
+    Route::post('/bookings', [BookingController::class, 'store']);
     // عرض جميع حجوزات المستأجر
     Route::get('/tenant/bookings', [TenantController::class, 'tenantBookings']);
     // إلغاء حجز
     Route::patch('/tenant/bookings/{id}/cancel', [TenantController::class, 'cancel']);
     // تعديل حجز
     Route::patch('/tenant/bookings/{id}/update', [TenantController::class, 'updateBooking']);
+   //تقييم الشقة
+    Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
 });
 
 // عرض الشقق (ApartmentController)
 Route::get('/apartments', [ApartmentController::class, 'index']);
-Route::get('/apartments/{apartment_details}', [ApartmentController::class, 'show']);
+//عرض تفاصيل الشقة
+Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']);
 
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
 Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
-Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
-Route::post('/apartment/toggleFavorit/{apartmentId}',[TenantController::class,'toggleFavorit'])->middleware('auth:sanctum');
-Route::get('/apartment/showFavorit',[TenantController::class,'showFavorit'])->middleware('auth:sanctum');
+Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');
+Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite'])->middleware('auth:sanctum');

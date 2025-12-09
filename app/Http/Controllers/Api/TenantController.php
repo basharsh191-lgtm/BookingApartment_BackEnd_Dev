@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\apartment_detail;
+use App\Models\apartmentDetail;
 use App\Models\Booking;
 use App\Models\favorit;
 use Illuminate\Http\JsonResponse;
@@ -14,38 +14,49 @@ class TenantController extends Controller
 {
 
     // عرض كل الحجوزات للمستأجر
-    public function tenantBookings(): JsonResponse
-    {
-        $bookings = Booking::where('tenant_id', auth()->id())->get();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'جميع حجوزاتك',
-            'data' => $bookings
-        ]);
-    }
     public function cancel($id): JsonResponse
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
-            return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
+        if (!$booking || $booking->status === 'canceled') {
+            return response()->json(['status' => false, 'message' => 'الحجز غير موجود'], 404);
         }
 
         // تحقق أن المستأجر هو من أنشأ الحجز
         if ($booking->tenant_id != auth()->id()) {
-            return response()->json(['status'=>false,'message'=>'غير مصرح لك بإلغاء هذا الحجز'],403);
+            return response()->json(['status' => false, 'message' => 'غير مصرح لك بإلغاء هذا الحجز'], 403);
         }
 
-        $booking->update(['status' => 'cancelled']);
+        // إذا كان الحجز "بانتظار الموافقة" → نحذف مباشرة
+        if ($booking->status === 'pending') {
+            $booking->delete();
+            return response()->json([
+                'status' => true,
+                'message' => 'تم حذف الحجز قبل الموافقة'
+            ]);
+        }
+        // إذا كان الحجز موافَق عليه → نلغيه ونرسل إشعار للمالك
+        if ($booking->status === 'accepted') {
 
-        return response()->json(['status'=>true,'message'=>'تم إلغاء الحجز بنجاح']);
+            $booking->update(['status' => 'cancelled']);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'تم إلغاء الحجز وإعلام المالك'
+            ]);
+
+        }
+        // إذا كان مرفوض أو ملغي بالأصل
+        return response()->json(['status' => false,
+            'message' => 'لا يمكن إلغاء هذا الحجز'], 400);
+
     }
     public function updateBooking(Request $request, $id): JsonResponse
     {
         $booking = Booking::find($id);
 
-        if (!$booking) {
+        if (!$booking || $booking->status === 'canceled') {
             return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
         }
 
@@ -54,7 +65,7 @@ class TenantController extends Controller
         }
 
         $request->validate([
-            'start_date' => 'required|date',
+            'start_date' => 'date|nullable',
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
@@ -82,32 +93,23 @@ class TenantController extends Controller
             'status'=>'pending'
         ]);
 
-        return response()->json(['status'=>true,'message'=>'تم تعديل الحجز بنجاح','data'=>$booking]);
+        return response()->json(['status'=>true,
+            'message'=>'تم تعديل الحجز بنجاح',
+            'data'=>$booking
+        ]);
     }
-    // public function addToFavorit($apartmentId)
-    // {
-    //     $user_id=Auth::id();
-    //     apartment_detail::findOrFail($apartmentId);
-    //     favorit::create([
-    //         'user_id'=>$user_id,
-    //         'apartment_id'=>$apartmentId
-    //     ]);
-    //     return response()->json([
-    //     'status'=>true,
-    //     'massege'=>'Add favorti succssfully'
-    // ], 200);
-    // }
+
     //هاد تابع للاضافة والازالة نستعمله مع ايقونة القلب
 
-    public function toggleFavorit($apartment_id)
+    public function toggleFavorite($apartment_id): JsonResponse
     {
         $user_id=Auth::id();
-        $favorit=favorit::where('user_id',$user_id)->where('apartment_id',$apartment_id)->first();
-        if($favorit)
+        $favorite=favorit::where('user_id',$user_id)->where('apartment_id',$apartment_id)->first();
+        if($favorite)
         {
-            $favorit->delete();
+            $favorite->delete();
             return response()->json([
-                'statuse'=>true,
+                'status'=>true,
                 'message'=>'Removed form favorites'
             ], 200);
         }
@@ -116,18 +118,18 @@ class TenantController extends Controller
             'apartment_id'=>$apartment_id
         ]);
         return response()->json([
-            'statuse'=>true,
+            'status'=>true,
             'message'=>'Added to favorites'
         ], 200);
 
     }
-    public function showFavorit()
+    public function showFavorite(): JsonResponse
     {
-        $favorit=favorit::with('apartment')->where('user_id',Auth::id())->get();
+        $favorite=favorit::with('apartment')->where('user_id',Auth::id())->get();
         return response()->json([
             'status'=>true,
             'message'=>'Favorites fetched successfully',
-            'data'=>$favorit
+            'data'=>$favorite
         ], 200);
     }
 }
