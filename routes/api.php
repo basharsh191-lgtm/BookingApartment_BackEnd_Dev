@@ -25,6 +25,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('register', [UserController::class, 'register']);
 Route::post('login', [UserController::class, 'login']);
 Route::post('logout', [UserController::class, 'logout'])->middleware('auth:sanctum');
+Route::post('/forgot-password/send-otp', [UserController::class, 'sendOtpForForgotPassword']);
+Route::post('/forgot-password/reset', [UserController::class, 'resetPassword']);
 
 
 //المالك (OwnerController)
