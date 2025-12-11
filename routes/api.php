@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
-use App\Http\Controllers\Api\OwnerController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\OwnerNewController;
@@ -10,8 +9,6 @@ use App\Http\Controllers\OwnerNewController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\WonerNewController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -63,7 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // تعديل حجز
     Route::patch('/tenant/bookings/{id}/update', [TenantController::class, 'updateBooking']);
    //تقييم الشقة
-    Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating'])->middleware('auth:sanctum');
+    Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating']);
 });
 
 // عرض الشقق (ApartmentController)

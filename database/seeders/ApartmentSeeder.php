@@ -15,6 +15,7 @@ class ApartmentSeeder extends Seeder
     {
         apartmentDetail::create([
             'owner_id' => 2,
+            'image'=>'default.jpg',
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
             'roomNumber' => 5,
@@ -29,6 +30,7 @@ class ApartmentSeeder extends Seeder
         ]);
           apartmentDetail::create([
             'owner_id' => 3,
+            'image'=>'default.jpg',
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
             'roomNumber' => 5,
@@ -43,6 +45,7 @@ class ApartmentSeeder extends Seeder
         ]);
          apartmentDetail::create([
             'owner_id' => 2,
+            'image'=>'default.jpg',
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
             'roomNumber' => 2,

@@ -74,10 +74,6 @@ class OwnerNewController extends Controller
 
         // معالجة الصورة إذا تم رفع جديدة
         if ($request->hasFile('image')) {
-            // حذف الصورة القديمة (اختياري)
-            if ($apartment->image && Storage::disk('public')->exists($apartment->image)) {
-                Storage::disk('public')->delete($apartment->image);
-            }
 
             $imagePath = $request->file('image')->store('apartments', 'public');
             $validated['image'] = $imagePath;

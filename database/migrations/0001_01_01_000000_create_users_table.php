@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('ProfileImage')->nullable();
             $table->string('BirthDate');
             $table->string('CardImage')->nullable();
-            $table->boolean('is_approved')->default(0);
+            $table->boolean('is_approved')->default(1);
             $table->string('user_type')->default('user');
             $table->rememberToken();
             $table->timestamps();

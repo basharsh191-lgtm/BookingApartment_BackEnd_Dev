@@ -7,11 +7,12 @@ use App\Models\apartmentDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class BookingController extends Controller
 {
 
-        public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         $request->validate([
             'apartment_id' => 'required|exists:apartment_details,id',
@@ -21,7 +22,7 @@ class BookingController extends Controller
 
         $apartment = apartmentDetail::find($request->apartment_id);
 
-        if ($apartment->owner_id == auth()->id()) {
+        if ($apartment->owner_id == Auth::id()) {
             return response()->json([
                 'status' => false,
                 'message' => 'لا يمكنك حجز شقتك الخاصة'
@@ -59,7 +60,7 @@ class BookingController extends Controller
         }
         // منع إرسال أكثر من طلب pending لنفس الشقة
         $hasPending = Booking::where('apartment_id', $apartment->id)
-            ->where('tenant_id', auth()->id())
+            ->where('tenant_id', Auth::id())
             ->where('status', 'pending')
             ->exists();
 
@@ -78,7 +79,7 @@ class BookingController extends Controller
         // إنشاء حجز بنتظار موافقة المالك فقط
         $booking = Booking::create([
             'apartment_id' => $apartment->id,
-            'tenant_id' => auth()->id(),
+            'tenant_id' => Auth::id(),
             'start_date' => $start,
             'end_date' => $end,
             'status' => 'pending',

@@ -19,7 +19,7 @@ return new class extends Migration
                 $table->integer('floorNumber');
                 $table->integer('roomNumber');
                 $table->boolean('is_furnished');
-                $table->string('image')->nullable();
+                $table->json('image');
                 $table->date('available_from');
                 $table->date('available_to');
                 $table->enum('status', ['available', 'not_available'])->default('available');
