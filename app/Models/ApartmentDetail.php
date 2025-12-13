@@ -7,9 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class apartmentDetail extends Model
 {
     protected $table = 'apartment_details';
-
    // protected $primaryKey = 'apartment_id';
-
+    protected $appends = ['avg_rating'];
     protected $fillable = [
         'owner_id',
         'apartment_description',
@@ -39,12 +38,16 @@ class apartmentDetail extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
-    public function rating(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function ratings(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
-        return $this->hasOne(Rating::class);
+        return $this->hasOne(Rating::class, 'apartment_id');
     }
     public function favorit()
     {
         return $this->hasMany(favorit::class);
+    }
+    public function getAvgRatingAttribute()
+    {
+        return $this->ratings()->avg('stars') ?? 3;
     }
 }

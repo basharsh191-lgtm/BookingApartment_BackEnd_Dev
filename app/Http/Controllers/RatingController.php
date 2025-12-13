@@ -41,4 +41,15 @@ class RatingController extends Controller
         ], 200);
     }
 
+    public function showRating($apartment)
+    {
+        $ratings = Rating::where('apartment_id', $apartment)
+            ->with('user:id,FirstName,LastName')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'ratings' => $ratings,
+        ]);
+    }
 }

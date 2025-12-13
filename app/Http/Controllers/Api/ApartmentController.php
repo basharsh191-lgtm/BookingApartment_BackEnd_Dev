@@ -27,10 +27,12 @@ class ApartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(apartmentDetail $apartmentDetail): apartmentDetail
+    public function show(apartmentDetail $apartmentDetail): JsonResponse
     {
 
-        return $apartmentDetail->load('ratings.user');
+        return response()->json(
+            $apartmentDetail->load('ratings.user')
+        );
     }
 
     /**

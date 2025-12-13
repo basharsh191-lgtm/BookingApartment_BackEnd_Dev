@@ -62,7 +62,7 @@ Route::get('/apartments', [ApartmentController::class, 'index']);
 //عرض تفاصيل الشقة
 Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']);
 //عرض التقييم الخاص بالشقة
-Route::get('/apartments/{apartmentDetail}', [RatingController::class, 'showRating']);
+Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 
 
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
