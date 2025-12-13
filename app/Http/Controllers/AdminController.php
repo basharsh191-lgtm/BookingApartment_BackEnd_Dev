@@ -17,16 +17,16 @@ class AdminController extends Controller
             'data' => $users
         ]);
     }
-     public function AllUsers(): JsonResponse
-     {
-        $users = User::where('user_type'==!'admin')->get();
+public function AllUsers(): JsonResponse
+{
+    $users = User::where('user_type', '!=', 'admin')->get();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'مستخدمون  جميعا',
-            'data' => $users
-        ]);
-    }
+    return response()->json([
+        'status' => true,
+        'message' => 'مستخدمون جميعا',
+        'data' => $users
+    ]);
+}
     public function approve($id): JsonResponse
     {
         $user = User::find($id);

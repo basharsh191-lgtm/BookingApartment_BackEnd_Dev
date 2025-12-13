@@ -39,9 +39,9 @@ class apartmentDetail extends Model
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
-    public function rating(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function rating()
     {
-        return $this->hasOne(Rating::class);
+        return $this->hasMany(Rating::class);
     }
     public function favorit()
     {

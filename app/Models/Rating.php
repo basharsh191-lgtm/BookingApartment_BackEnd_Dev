@@ -10,10 +10,10 @@ protected $guarded=[];
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class,'user_id');
     }
     public function apartment()
     {
-        return $this->belongsTo(apartmentDetail::class);
+        return $this->belongsTo(apartmentDetail::class,'apartment_id');
     }
 }

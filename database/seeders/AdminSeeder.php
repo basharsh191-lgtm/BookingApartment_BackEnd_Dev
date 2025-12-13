@@ -58,5 +58,38 @@ class AdminSeeder extends Seeder
             'is_approved' => 1,
             'user_type' => 'user'
         ]);
+               User::create([
+            'FirstName' => 'ammar',
+            'LastName' => 'Al_Shayyah',
+            'mobile' => '0981491111',
+            'password' => Hash::make('1122334455'),
+            'ProfileImage' => null,
+            'BirthDate' => '1990-01-01',
+            'CardImage' => null,
+            'is_approved' => 0,
+            'user_type' => 'user'
+        ]);
+           User::create([
+            'FirstName' => 'lina',
+            'LastName' => 'Al_Shayyah',
+            'mobile' => '0988888888',
+            'password' => Hash::make('1122334455'),
+            'ProfileImage' => null,
+            'BirthDate' => '1990-01-01',
+            'CardImage' => null,
+            'is_approved' => 0,
+            'user_type' => 'user'
+        ]);
+           User::create([
+            'FirstName' => 'rana',
+            'LastName' => 'Al_Shayyah',
+            'mobile' => '0969217248',
+            'password' => Hash::make('1122334455'),
+            'ProfileImage' => null,
+            'BirthDate' => '1990-01-01',
+            'CardImage' => null,
+            'is_approved' => 0,
+            'user_type' => 'user'
+        ]);
     }
 }
