@@ -21,7 +21,7 @@ class OwnerNewController extends Controller
             'apartment_description' => 'required|string|max:255',
             'floorNumber' => 'required|integer|min:0',
             'roomNumber' => 'required|integer|min:1',
-            'is_furnished' => 'required|boolean',
+            'free_wifi' => 'required|boolean',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'available_from' => 'required|date|after_or_equal:today',
             'available_to' => 'required|date|after_or_equal:available_from',
@@ -69,7 +69,7 @@ class OwnerNewController extends Controller
             'governorate' => 'string|max:100|nullable',
             'area' => 'numeric|min:1|nullable',
             'price' => 'numeric|min:0|nullable',
-            'is_furnished' => 'boolean|nullable',
+            'free_wifi' => 'boolean|nullable',
         ]);
 
         // معالجة الصورة إذا تم رفع جديدة

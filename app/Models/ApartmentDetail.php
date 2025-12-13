@@ -22,7 +22,7 @@ class apartmentDetail extends Model
         'city',
         'area',
         'price',
-        'is_furnished',
+        'free_wifi',
         'status',
     ];
 
@@ -31,7 +31,7 @@ class apartmentDetail extends Model
         'available_from' => 'date',
         'available_to' => 'date',
         'price' => 'decimal:2',
-        'is_furnished' => 'boolean',
+        'free_wifi' => 'boolean',
     ];
 
 
