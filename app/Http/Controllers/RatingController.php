@@ -23,19 +23,19 @@ class RatingController extends Controller
         if(!$hasbooking)
         {
             return response()->json([
-                'succsses'=>false,
-                'massege'=>'Erorr,انت ما حجزت الشقة لتقيمها 🙁'
+                'success'=>false,
+                'massage'=>'Erorr,انت ما حجزت الشقة لتقيمها 🙁'
             ]
             , 401);
         }
         Rating::create([
-            'renter_id'=>$user_id,
+            'user_id'=>$user_id,
             'apartment_id'=>$apartment,
-            'starts'=>$request->stars,
+            'stars'=>$request->stars,
             'comment'=>$request->comment,
         ]);
         return response()->json([
-            'succsses'=>'تم اضافة التقييم بنجاح',
+            'success'=>'تم اضافة التقييم بنجاح',
         ], 200);
     }
 }

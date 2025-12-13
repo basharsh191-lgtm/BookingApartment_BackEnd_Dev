@@ -29,7 +29,8 @@ class ApartmentController extends Controller
      */
     public function show(apartmentDetail $apartmentDetail): apartmentDetail
     {
-        return $apartmentDetail;
+
+        return $apartmentDetail->load('ratings.user');
     }
 
     /**

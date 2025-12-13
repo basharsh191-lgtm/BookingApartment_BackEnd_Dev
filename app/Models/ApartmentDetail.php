@@ -10,6 +10,7 @@ class apartmentDetail extends Model
 
    // protected $primaryKey = 'apartment_id';
 
+    protected $appends = ['avg_rating'];
     protected $fillable = [
         'owner_id',
         'apartment_description',
@@ -34,17 +35,21 @@ class apartmentDetail extends Model
         'free_wifi' => 'boolean',
     ];
 
-
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'apartment_id');
+    }
     public function user()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
-    public function rating(): \Illuminate\Database\Eloquent\Relations\HasOne
-    {
-        return $this->hasOne(Rating::class);
-    }
+
     public function favorit()
     {
         return $this->hasMany(favorit::class);
+    }
+    public function getAvgRatingAttribute()
+    {
+        return $this->ratings()->avg('stars') ?? 3;
     }
 }

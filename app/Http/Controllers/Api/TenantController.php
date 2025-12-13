@@ -99,6 +99,23 @@ class TenantController extends Controller
         ]);
     }
 
+    // عرض جميع حجوزات المستأجر
+    public function tenantBookings(): JsonResponse
+    {
+        $tenantId = Auth::id();
+
+        $bookings = Booking::with([
+            'apartment',
+        ])
+            ->where('tenant_id', $tenantId)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $bookings
+        ]);
+    }
     //هاد تابع للاضافة والازالة نستعمله مع ايقونة القلب
 
     public function toggleFavorite($apartment_id): JsonResponse
