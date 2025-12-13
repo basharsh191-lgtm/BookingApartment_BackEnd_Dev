@@ -211,12 +211,13 @@ class OwnerNewController extends Controller
      */
     public function ownerBookings(): JsonResponse
     {
-        $bookings = Booking::with(['apartment', 'user'])
-            ->whereHas('apartment', function($q) {
-                $q->where('owner_id', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $bookings = Booking::with(['apartment','tenant']) // إزالة user مؤقتاً
+        ->whereHas('apartment', function($q) {
+            $q->where('owner_id', Auth::id());
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
 
         if ($bookings->isEmpty()) {
             return response()->json([

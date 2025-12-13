@@ -15,9 +15,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/users', [AdminController::class, 'pendingUsers']);//عرض كل يلي ما نقبلو
     Route::get('/admin/Allusers', [AdminController::class, 'AllUsers']);//عرض الكل المقبولين والغير مقبولين
     Route::post('/admin/users/approve/{id}', [AdminController::class, 'approve']);//قبول يوزر واحد محدد
-    Route::post('/admin/users/approveAll', [AdminController::class, 'approveAll']);//قبول الكل
     Route::post('/admin/users/rejected/{id}', [AdminController::class, 'rejected']);//رفض واحد محدد
-    Route::post('/admin/users/rejectedAll', [AdminController::class, 'rejectedAll']);//رفض الكل
     Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUsers']);//حذف مستخدم معين
 });
 
@@ -34,13 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
     Route::post('/owner/apartments', [OwnerNewController::class, 'store']);
     // تعديل بيانات الشقة
-
     Route::patch('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
     // تعديل فترة التوافر للشقة
     Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerNewController::class, 'setAvailability']);
     // حذف الشقة
     Route::delete('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'destroy']);
-
     // الموافقة على حجز
     Route::patch('/owner/bookings/{id}/approve', [OwnerNewController::class, 'approve']);
     // رفض الحجز

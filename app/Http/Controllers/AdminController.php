@@ -27,7 +27,6 @@ class AdminController extends Controller
             'data' => $users
         ]);
     }
-
     public function approve($id): JsonResponse
     {
         $user = User::find($id);
@@ -47,21 +46,6 @@ class AdminController extends Controller
             'message' => 'تمت الموافقة على المستخدم بنجاح'
         ]);
     }
-
-    public function approveAll(): JsonResponse
-    {
-       $users = User::where('user_type'==!'admin')->get();
-
-       foreach($users as $user)
-       {
-        $user->is_approved=1;
-        $user->save();
-       }
-  return response()->json([
-            'status' => true,
-            'message' => 'تمت الموافقة على جميع المستخدمين بنجاح'
-        ]);
-    }
       public function rejected($id): JsonResponse
       {
         $user = User::find($id);
@@ -79,20 +63,6 @@ class AdminController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'تمت رفض طلب المستخدم بنجاح'
-        ]);
-    }
-    public function rejectedAll(): JsonResponse
-    {
-       $users = User::where('user_type'==!'admin')->get();
-
-       foreach($users as $user)
-       {
-        $user->is_approved=-1;
-        $user->save();
-       }
-  return response()->json([
-            'status' => true,
-            'message' => 'تمت رفض  جميع المستخدمين بنجاح'
         ]);
     }
      public function deleteUsers($id): JsonResponse

@@ -105,7 +105,7 @@ class UserController extends Controller
             'ProfileImage'=>$request->ProfileImage,
             'BirthDate'=>$request->BirthDate,
             'CardImage'=>$request->CardImage,
-            'is_approved'=>0
+            'is_approved'=>1
         ]);
 
         return response()->json([

@@ -24,12 +24,12 @@ class Booking extends Model
 
     public function apartment(): BelongsTo
     {
-        return $this->belongsTo(apartmentDetail::class, 'apartment_id');
+        return $this->belongsTo(apartmentDetail::class,'apartment_id');
     }
 
-    public function tenant(): BelongsTo
+   public function tenant(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'tenant_id');
+        return $this->belongsTo(User::class,'tenant_id');
     }
 
 }

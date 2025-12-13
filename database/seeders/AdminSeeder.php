@@ -47,5 +47,16 @@ class AdminSeeder extends Seeder
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
+          User::create([
+            'FirstName' => 'Ali',
+            'LastName' => 'Ali',
+            'mobile' => '0969227244',
+            'password' => Hash::make('1122334455'),
+            'ProfileImage' => null,
+            'BirthDate' => '1990-01-01',
+            'CardImage' => null,
+            'is_approved' => 1,
+            'user_type' => 'user'
+        ]);
     }
 }

@@ -24,7 +24,7 @@ class TenantController extends Controller
         }
 
         // تحقق أن المستأجر هو من أنشأ الحجز
-        if ($booking->tenant_id != auth()->id()) {
+        if ($booking->tenant_id != Auth::id()) {
             return response()->json(['status' => false, 'message' => 'غير مصرح لك بإلغاء هذا الحجز'], 403);
         }
 
@@ -60,7 +60,7 @@ class TenantController extends Controller
             return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
         }
 
-        if ($booking->tenant_id != auth()->id()) {
+        if ($booking->tenant_id != Auth::id()) {
             return response()->json(['status'=>false,'message'=>'غير مصرح لك بتعديل هذا الحجز'],403);
         }
 
