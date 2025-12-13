@@ -18,7 +18,7 @@ return new class extends Migration
                 $table->text('apartment_description');
                 $table->integer('floorNumber');
                 $table->integer('roomNumber');
-                $table->boolean('is_furnished');
+                $table->boolean('free_wifi');
                 $table->json('image');
                 $table->date('available_from');
                 $table->date('available_to');
