@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\apartmentDetail;
 use App\Models\Booking;
 use App\Models\Rating;
 use Illuminate\Http\Request;
@@ -18,9 +19,10 @@ class RatingController extends Controller
             'comment'=>'nullable|string'
         ]);
         $user_id=Auth::id();
+
         $hasbooking=Booking::where('tenant_id',$user_id)
-        ->where('apartment_id',$apartment)->where('status','finished')->exists();
-        if(!$hasbooking)
+        ->where('apartment_id',$apartment)->where('status','finished');
+    if(!$hasbooking)
         {
             return response()->json([
                 'success'=>false,
@@ -38,4 +40,5 @@ class RatingController extends Controller
             'success'=>'تم اضافة التقييم بنجاح',
         ], 200);
     }
+
 }
