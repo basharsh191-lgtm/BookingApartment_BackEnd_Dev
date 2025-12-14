@@ -106,7 +106,11 @@ class UserController extends Controller
             'ProfileImage' => $validated['ProfileImage'], // ← المسار الصحيح الآن
             'BirthDate' => $validated['BirthDate'],
             'CardImage' => $validated['CardImage'],
+<<<<<<< HEAD
             'is_approved' => 0
+=======
+            'is_approved' => 1
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
         ]);
 
         return response()->json([

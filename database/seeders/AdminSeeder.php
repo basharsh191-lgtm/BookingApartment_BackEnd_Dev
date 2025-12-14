@@ -19,9 +19,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Admin',
             'mobile' => '0999999999',
             'password' => Hash::make('123456789'),
+<<<<<<< HEAD
             'ProfileImage' => 'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' => 'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 1,
             'user_type' => 'admin'
         ]);
@@ -30,9 +36,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0969227248',
             'password' => Hash::make('1122334455'),
+<<<<<<< HEAD
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' => 'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' =>['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -41,9 +53,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Ali',
             'mobile' => '0999459222',
             'password' => Hash::make('1122334455'),
+<<<<<<< HEAD
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' =>  'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -54,7 +72,11 @@ class AdminSeeder extends Seeder
             'password' => Hash::make('1122334455'),
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
+<<<<<<< HEAD
             'CardImage' => 'default.jpg',
+=======
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 1,
             'user_type' => 'user'
         ]);
@@ -63,9 +85,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0981491111',
             'password' => Hash::make('1122334455'),
+<<<<<<< HEAD
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' => 'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -74,9 +102,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0988888888',
             'password' => Hash::make('1122334455'),
+<<<<<<< HEAD
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' =>  'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -85,9 +119,15 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0969217248',
             'password' => Hash::make('1122334455'),
+<<<<<<< HEAD
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' =>  'default.jpg',
+=======
+            'ProfileImage' => ['default.jpg'],
+            'BirthDate' => '1990-01-01',
+            'CardImage' => ['default.jpg'],
+>>>>>>> 2f599a976a2922343fc5c36cbef0ddc06f90f130
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
