@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('LastName');
             $table->string('mobile')->unique();
             $table->string('password');
-            $table->string('ProfileImage')->nullable();
+            $table->string('ProfileImage');
             $table->string('BirthDate');
             $table->string('CardImage')->nullable();
             $table->boolean('is_approved')->default(1);

@@ -22,7 +22,8 @@ class OwnerNewController extends Controller
             'floorNumber' => 'required|integer|min:0',
             'roomNumber' => 'required|integer|min:1',
             'free_wifi' => 'required|boolean',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' =>  'required',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif',
             'available_from' => 'required|date|after_or_equal:today',
             'available_to' => 'required|date|after_or_equal:available_from',
             'city' => 'required|string|max:100',
@@ -32,18 +33,21 @@ class OwnerNewController extends Controller
         ]);
 
         // معالجة الصورة
+        $imagePaths = [];
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('apartments', 'public');
-            $validated['image'] = $imagePath;
+            foreach ($request->file('image') as $image) {
+                $imagePaths[] = $image->store('apartments', 'public');
+            }
         }
 
+        $validated['image'] = $imagePaths;
         $validated['owner_id'] = Auth::id();
         $detail = apartmentDetail::create($validated);
 
         return response()->json([
             'message' => 'تم إضافة الشقة بنجاح',
             'data' => $detail,
-            'image_url' => asset('storage/' . $detail->image)
+            'image_url' => asset('storage/' . $detail->image[0])
         ], 201);
     }
 
@@ -62,10 +66,11 @@ class OwnerNewController extends Controller
 
         $validated = $request->validate([
             'apartment_description' => 'string|nullable|max:255',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048|nullable',
-            'available_from' => 'date|nullable',
+            'image' =>  'required|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif',
+            'available_from' => 'date|required',
             'available_to' => 'date|after_or_equal:available_from|nullable',
-            'city' => 'string|max:100|nullable',
+            'city' => 'string|max:100|required',
             'governorate' => 'string|max:100|nullable',
             'area' => 'numeric|min:1|nullable',
             'price' => 'numeric|min:0|nullable',
@@ -73,12 +78,14 @@ class OwnerNewController extends Controller
         ]);
 
         // معالجة الصورة إذا تم رفع جديدة
+        $imagePaths = [];
         if ($request->hasFile('image')) {
-
-            $imagePath = $request->file('image')->store('apartments', 'public');
-            $validated['image'] = $imagePath;
+            foreach ($request->file('image') as $image) {
+                $imagePaths[] = $image->store('apartments', 'public');
+            }
         }
 
+        $validated['image'] = $imagePaths;
         $apartment->update($validated);
 
         return response()->json([

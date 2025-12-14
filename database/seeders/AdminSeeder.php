@@ -19,9 +19,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Admin',
             'mobile' => '0999999999',
             'password' => Hash::make('123456789'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 1,
             'user_type' => 'admin'
         ]);
@@ -30,9 +30,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0969227248',
             'password' => Hash::make('1122334455'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' =>['default.jpg'],
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -41,9 +41,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Ali',
             'mobile' => '0999459222',
             'password' => Hash::make('1122334455'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -54,7 +54,7 @@ class AdminSeeder extends Seeder
             'password' => Hash::make('1122334455'),
             'ProfileImage' => null,
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 1,
             'user_type' => 'user'
         ]);
@@ -63,9 +63,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0981491111',
             'password' => Hash::make('1122334455'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -74,9 +74,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0988888888',
             'password' => Hash::make('1122334455'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
@@ -85,9 +85,9 @@ class AdminSeeder extends Seeder
             'LastName' => 'Al_Shayyah',
             'mobile' => '0969217248',
             'password' => Hash::make('1122334455'),
-            'ProfileImage' => null,
+            'ProfileImage' => ['default.jpg'],
             'BirthDate' => '1990-01-01',
-            'CardImage' => null,
+            'CardImage' => ['default.jpg'],
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
