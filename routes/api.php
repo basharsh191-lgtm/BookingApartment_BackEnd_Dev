@@ -64,9 +64,8 @@ Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']
 //عرض التقييم الخاص بالشقة
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 
-
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
-Route::put('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
+Route::post('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
 Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');

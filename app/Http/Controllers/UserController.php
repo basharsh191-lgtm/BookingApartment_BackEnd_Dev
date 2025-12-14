@@ -84,28 +84,29 @@ class UserController extends Controller
 
     public function register(RequestRegister $request): JsonResponse
     {
+        $validated = $request->validated();
 
-        $validate=$request->validated();
-        if($request->hasFile('ProfileImage'))
-        {
-            $path=$request->file('ProfileImage')->store('Profile','public');
-            $validate['ProfileImage']=$path;
-        }
-        if($request->hasFile('CardImage'))
-        {
-            $path=$request->file('CardImage')->store('Card','public');
-            $validate['CardImage']=$path;
+        // معالجة صورة البروفايل
+        if($request->hasFile('ProfileImage')){
+            $validated['ProfileImage'] = $request->file('ProfileImage')->store('Profile', 'public');
         }
 
-        $user=User::create([
-            'FirstName'=>$request->FirstName,
-            'LastName'=>$request->LastName,
-            'mobile'=>$request->mobile,
-            'password'=>Hash::make($request->password),
-            'ProfileImage'=>$request->ProfileImage,
-            'BirthDate'=>$request->BirthDate,
-            'CardImage'=>$request->CardImage,
-            'is_approved'=>1
+        // معالجة صورة البطاقة
+        if($request->hasFile('CardImage')){
+            $validated['CardImage'] = $request->file('CardImage')->store('Card', 'public');
+        } else {
+            $validated['CardImage'] = null;
+        }
+
+        $user = User::create([
+            'FirstName' => $validated['FirstName'],
+            'LastName' => $validated['LastName'],
+            'mobile' => $validated['mobile'],
+            'password' => Hash::make($validated['password']),
+            'ProfileImage' => $validated['ProfileImage'], // ← المسار الصحيح الآن
+            'BirthDate' => $validated['BirthDate'],
+            'CardImage' => $validated['CardImage'],
+            'is_approved' => 0
         ]);
 
         return response()->json([
@@ -114,6 +115,7 @@ class UserController extends Controller
             'approved' => false
         ], 200);
     }
+
     public function login(Request $request): JsonResponse
     {
         $request->validate([
