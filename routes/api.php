@@ -11,11 +11,11 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-    Route::get('/admin/users', [AdminController::class, 'pendingUsers']);//عرض كل يلي ما نقبلو
-    Route::get('/admin/Allusers', [AdminController::class, 'AllUsers']);//عرض الكل المقبولين والغير مقبولين
-    Route::post('/admin/users/approve/{id}', [AdminController::class, 'approve']);//قبول يوزر واحد محدد
-    Route::post('/admin/users/rejected/{id}', [AdminController::class, 'rejected']);//رفض واحد محدد
-    Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUsers']);//حذف مستخدم معين
+Route::get('/admin/users', [AdminController::class, 'pendingUsers']);//عرض كل يلي ما نقبلو
+Route::get('/admin/Allusers', [AdminController::class, 'AllUsers']);//عرض الكل المقبولين والغير مقبولين
+Route::post('/admin/users/approve/{id}', [AdminController::class, 'approve']);//قبول يوزر واحد محدد
+Route::post('/admin/users/rejected/{id}', [AdminController::class, 'rejected']);//رفض واحد محدد
+Route::post('/admin/users/delete/{id}', [AdminController::class, 'deleteUsers']);//حذف مستخدم معين
 
 
 Route::post('register', [UserController::class, 'register']);
@@ -30,7 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // إضافة شقة جديدة
     Route::post('/owner/apartments', [OwnerNewController::class, 'store']);
     // تعديل بيانات الشقة
-    Route::patch('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
+    Route::post('/owner/apartments/{apartment_details}', [OwnerNewController::class, 'update']);
     // تعديل فترة التوافر للشقة
     Route::patch('/owner/apartments/{apartment_details}/availability', [OwnerNewController::class, 'setAvailability']);
     // حذف الشقة
@@ -65,6 +65,7 @@ Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
+
 Route::post('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
 
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);

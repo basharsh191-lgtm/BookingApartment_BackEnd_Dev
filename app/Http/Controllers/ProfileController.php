@@ -29,7 +29,7 @@ class ProfileController extends Controller
         'CardImage' => 'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
     ]);
 
-    if ($request->has('mobail')) {
+    if ($request->has('mobile')) {
         return response()->json([
             'message' => 'لا يمكن تعديل رقم الهاتف بعد التسجيل'
         ], 422);

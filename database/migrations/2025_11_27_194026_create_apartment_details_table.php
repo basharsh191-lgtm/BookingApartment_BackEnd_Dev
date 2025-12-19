@@ -19,7 +19,6 @@ return new class extends Migration
                 $table->integer('floorNumber');
                 $table->integer('roomNumber');
                 $table->boolean('free_wifi');
-                $table->json('image');
                 $table->date('available_from');
                 $table->date('available_to');
                 $table->enum('status', ['available', 'not_available'])->default('available');

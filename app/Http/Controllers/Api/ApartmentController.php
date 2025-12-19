@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\apartmentDetail;
 use App\Models\Apartment_details;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -27,13 +28,18 @@ class ApartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(apartmentDetail $apartmentDetail): JsonResponse
-    {
+public function show(apartmentDetail $apartmentDetail): JsonResponse
+{
+    $apartmentDetail->load(['ratings.user']);
 
-        return response()->json(
-            $apartmentDetail->load('ratings.user')
-        );
-    }
+    $owner = User::select('id', 'FirstName','LastName', 'mobile')
+        ->where('id', $apartmentDetail->owner_id)
+        ->first();
+
+    $apartmentDetail->owner_info = $owner;
+
+    return response()->json($apartmentDetail);
+}
 
     /**
      * Update the specified resource in storage.

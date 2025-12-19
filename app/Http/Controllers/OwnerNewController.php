@@ -13,87 +13,104 @@ use Illuminate\Support\Facades\Storage;
 class OwnerNewController extends Controller
 {
     /**
-     * إنشاء شقة جديدة (إصدار محسّن)
+     * إنشاء شقة جديدة)
      */
-    public function store(Request $request): JsonResponse
-    {
-        $validated = $request->validate([
-            'apartment_description' => 'required|string|max:255',
-            'floorNumber' => 'required|integer|min:0',
-            'roomNumber' => 'required|integer|min:1',
-            'free_wifi' => 'required|boolean',
-            'image' =>  'required',
-            'image.*' => 'image|mimes:jpeg,png,jpg,gif',
-            'available_from' => 'required|date|after_or_equal:today',
-            'available_to' => 'required|date|after_or_equal:available_from',
-            'city' => 'required|string|max:100',
-            'governorate' => 'required|string|max:100',
-            'area' => 'required|numeric|min:1',
-            'price' => 'required|numeric|min:0',
+public function store(Request $request): JsonResponse
+{
+    $validated = $request->validate([
+        'apartment_description' => 'required|string|max:255',
+        'floorNumber' => 'required|integer|min:0',
+        'roomNumber' => 'required|integer|min:1',
+        'free_wifi' => 'required|boolean',
+        'image' => 'required|array|min:1',
+        'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        'available_from' => 'required|date|after_or_equal:today',
+        'available_to' => 'required|date|after_or_equal:available_from',
+        'city' => 'required|string|max:100',
+        'governorate' => 'required|string|max:100',
+        'area' => 'required|numeric|min:1',
+        'price' => 'required|numeric|min:0',
+    ]);
+
+    // ربط الشقة بالمستخدم
+    $validated['owner_id'] = Auth::id();
+
+    // إنشاء الشقة (بلا الصور)
+    $apartment = apartmentDetail::create($validated);
+
+    // حفظ الصور (كل صورة ب حقل بادلت بيز)
+    foreach ($request->file('image') as $image) {
+        $path = $image->store('apartments', 'public');
+
+        $apartment->images()->create([
+            'image_path' => $path
         ]);
-
-        // معالجة الصورة
-        $imagePaths = [];
-        if ($request->hasFile('image')) {
-            foreach ($request->file('image') as $image) {
-                $imagePaths[] = $image->store('apartments', 'public');
-            }
-        }
-
-        $validated['image'] = $imagePaths;
-        $validated['owner_id'] = Auth::id();
-        $detail = apartmentDetail::create($validated);
-
-        return response()->json([
-            'message' => 'تم إضافة الشقة بنجاح',
-            'data' => $detail,
-            'image_url' => asset('storage/' . $detail->image[0])
-        ], 201);
     }
+
+    return response()->json([
+        'status' => true,
+        'message' => 'تم إضافة الشقة بنجاح',
+        'data' => $apartment->load('images')
+    ], 201);
+}
 
     /**
      * تعديل بيانات الشقة
      */
-    public function update(Request $request, apartmentDetail $apartment): JsonResponse
-    {
-        // تحقق من الملكية
-        if ($apartment->owner_id !== Auth::id()) {
-            return response()->json([
-                'status' => false,
-                'message' => 'غير مصرح لك بتعديل هذه الشقة'
-            ], 403);
-        }
+public function update(Request $request, $id)
+{
+    $apartment = apartmentDetail::where('id', $id)
+        ->where('owner_id', Auth::id())->with('images')
+        ->first();
 
-        $validated = $request->validate([
-            'apartment_description' => 'string|nullable|max:255',
-            'image' =>  'required|array',
-            'image.*' => 'image|mimes:jpeg,png,jpg,gif',
-            'available_from' => 'date|required',
-            'available_to' => 'date|after_or_equal:available_from|nullable',
-            'city' => 'string|max:100|required',
-            'governorate' => 'string|max:100|nullable',
-            'area' => 'numeric|min:1|nullable',
-            'price' => 'numeric|min:0|nullable',
-            'free_wifi' => 'boolean|nullable',
-        ]);
-
-        // معالجة الصورة إذا تم رفع جديدة
-        $imagePaths = [];
-        if ($request->hasFile('image')) {
-            foreach ($request->file('image') as $image) {
-                $imagePaths[] = $image->store('apartments', 'public');
-            }
-        }
-
-        $validated['image'] = $imagePaths;
-        $apartment->update($validated);
-
+    if (!$apartment) {
         return response()->json([
-            'message' => 'تم تعديل الشقة بنجاح',
-            'data' => $apartment
-        ]);
+            'status' => false,
+            'message' => 'غير مصرح لك أو الشقة غير موجودة'
+        ], 403);
     }
 
+    $validated = $request->validate([
+        'apartment_description' => 'nullable|string|max:255',
+        'available_from' => 'nullable|date',
+        'available_to' => 'nullable|date|after_or_equal:available_from',
+        'city' => 'nullable|string|max:100',
+        'governorate' => 'nullable|string|max:100',
+        'area' => 'nullable|numeric|min:1',
+        'price' => 'nullable|numeric|min:0',
+        'free_wifi' => 'nullable|boolean',
+        'image' => 'nullable|array',
+        'image.*' => 'image|mimes:jpeg,png,jpg,gif',
+    ]);
+
+    $apartment->update($validated);
+
+    if ($request->hasFile('image')) {
+
+        foreach ($apartment->images as $oldImage) {
+            if (Storage::disk('public')->exists($oldImage->image_path)) {
+                Storage::disk('public')->delete($oldImage->image_path);
+            }
+            $oldImage->delete();
+        }
+
+        // حفظ الصور الجديدة
+        foreach ($request->file('image') as $image) {
+            $path = $image->store('apartments', 'public');
+
+            $apartment->images()->create([
+                'image_path' => $path
+            ]);
+        }
+    }
+
+    return response()->json([
+        'message' => 'تم تعديل الشقة بنجاح',
+        'data' => $apartment->load('images'),
+
+
+    ]);
+}
     /**
      * تعديل فترة التوافر
      */
@@ -127,9 +144,7 @@ class OwnerNewController extends Controller
         $apartment = apartmentDetail::where('id', $id)
             ->where('owner_id', Auth::id())
             ->firstOrFail();
-
         $apartment->delete();
-
         return response()->json([
             'success' => true,
             'message' => 'تم حذف الشقة بنجاح'

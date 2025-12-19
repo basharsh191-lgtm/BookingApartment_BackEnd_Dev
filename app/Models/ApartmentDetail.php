@@ -14,7 +14,6 @@ class apartmentDetail extends Model
         'apartment_description',
         'floorNumber',
         'roomNumber',
-        'image',
         'available_from',
         'available_to',
         'governorate',
@@ -26,7 +25,6 @@ class apartmentDetail extends Model
     ];
 
     protected $casts = [
-        'image' => 'array',
         'available_from' => 'date',
         'available_to' => 'date',
         'price' => 'decimal:2',
@@ -49,5 +47,9 @@ class apartmentDetail extends Model
     public function getAvgRatingAttribute()
     {
         return $this->ratings()->avg('stars') ?? 3;
+    }
+    public function images()
+    {
+        return $this->hasMany(ApartmentImage::class,'apartment_details_id');
     }
 }
