@@ -20,7 +20,7 @@ return new class extends Migration
                 $table->integer('roomNumber');
                 $table->boolean('free_wifi');
                 $table->date('available_from');
-                $table->date('available_to');
+                $table->date('available_to')->nullable();
                 $table->enum('status', ['available', 'not_available'])->default('available');
                 $table->string('governorate', 50);
                 $table->string('city');

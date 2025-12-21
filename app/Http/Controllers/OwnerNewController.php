@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\apartment_detail;
 use App\Models\apartmentDetail;
 use App\Models\Booking;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -25,7 +26,7 @@ public function store(Request $request): JsonResponse
         'image' => 'required|array|min:1',
         'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         'available_from' => 'required|date|after_or_equal:today',
-        'available_to' => 'required|date|after_or_equal:available_from',
+        'available_to' => 'nullable|date|after_or_equal:available_from',
         'city' => 'required|string|max:100',
         'governorate' => 'required|string|max:100',
         'area' => 'required|numeric|min:1',
@@ -34,6 +35,7 @@ public function store(Request $request): JsonResponse
 
     // ربط الشقة بالمستخدم
     $validated['owner_id'] = Auth::id();
+    $validated['scheduled_for_deletion'] = false;
 
     // إنشاء الشقة (بلا الصور)
     $apartment = apartmentDetail::create($validated);
@@ -144,7 +146,27 @@ public function update(Request $request, $id)
         $apartment = apartmentDetail::where('id', $id)
             ->where('owner_id', Auth::id())
             ->firstOrFail();
+
+        $hasActiveBookings = Booking::where('apartment_id', $id)
+            ->whereIn('status', ['accepted', 'pending'])
+            ->where('end_date', '>=', Carbon::now())
+            ->exists();
+
+        if ($hasActiveBookings) {
+            $apartment->update([
+                'scheduled_for_deletion' => true
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'الشقة مؤجرة حالياً، سيتم حذفها تلقائياً بعد انتهاء آخر حجز'
+            ]);
+        }
+
+        // لا يوجد أي حجز فعّال → حذف فوري
+        Booking::where('apartment_id', $id)->delete();
         $apartment->delete();
+
         return response()->json([
             'success' => true,
             'message' => 'تم حذف الشقة بنجاح'

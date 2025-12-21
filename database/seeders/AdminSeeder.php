@@ -14,7 +14,7 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-            User::create([
+        User::create([
             'FirstName' => 'System',
             'LastName' => 'Admin',
             'mobile' => '0999999999',
@@ -61,7 +61,7 @@ class AdminSeeder extends Seeder
             'is_approved' => 1,
             'user_type' => 'user'
         ]);
-            User::create([
+        User::create([
             'FirstName' => 'ammar',
             'LastName' => 'Al_Shayyah',
             'mobile' => '0981491111',

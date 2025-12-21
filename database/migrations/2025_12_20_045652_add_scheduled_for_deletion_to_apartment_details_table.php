@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('apartment_imags', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('apartment_details_id')->constrained('apartment_details')->cascadeOnDelete();
-            $table->string('image_path');
-            $table->timestamps();
+        Schema::table('apartment_details', function (Blueprint $table) {
+            $table->boolean('scheduled_for_deletion')->default(false);
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('apartment_images');
+        Schema::table('apartment_details', function (Blueprint $table) {
+            //
+        });
     }
 };

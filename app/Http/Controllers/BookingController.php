@@ -22,6 +22,13 @@ class BookingController extends Controller
 
         $apartment = apartmentDetail::find($request->apartment_id);
 
+        if ($apartment->scheduled_for_deletion) {
+            return response()->json([
+                'status' => false,
+                'message' => 'هذه الشقة غير متاحة للحجز حالياً'
+            ], 400);
+        }
+
         if ($apartment->owner_id == Auth::id()) {
             return response()->json([
                 'status' => false,
@@ -32,8 +39,9 @@ class BookingController extends Controller
         $start = Carbon::parse($request->start_date);
         $end = Carbon::parse($request->end_date);
         $availableStart = Carbon::parse($apartment->available_from);
-        $availableEnd = Carbon::parse($apartment->available_to);
-
+        $availableEnd = $apartment->available_to
+            ? Carbon::parse($apartment->available_to)
+            : Carbon::create(2100, 1, 1);
         if ($start < $availableStart || $end > $availableEnd) {
             return response()->json([
                 'status' => false,
@@ -42,7 +50,7 @@ class BookingController extends Controller
         }
 
         $overlap = Booking::where('apartment_id', $apartment->id)
-            ->where('status', 'approved')
+            ->where('status', 'accepted')
             ->where(function ($q) use ($start, $end) {
                 $q->whereBetween('start_date', [$start, $end])
                     ->orWhereBetween('end_date', [$start, $end])

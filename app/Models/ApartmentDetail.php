@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class apartmentDetail extends Model
 {
     protected $table = 'apartment_details';
-   // protected $primaryKey = 'apartment_id';
+
+    protected $attributes = [
+        'scheduled_for_deletion' => false,
+    ];
     protected $appends = ['avg_rating'];
     protected $fillable = [
         'owner_id',
@@ -22,7 +25,10 @@ class apartmentDetail extends Model
         'price',
         'free_wifi',
         'status',
+        'scheduled_for_deletion',
     ];
+
+
 
     protected $casts = [
         'available_from' => 'date',

@@ -3,8 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\apartmentDetail;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+
 use Illuminate\Database\Seeder;
+
 
 class ApartmentSeeder extends Seeder
 {
@@ -23,11 +25,11 @@ class ApartmentSeeder extends Seeder
             'available_to' => '1990-02-01',
             'status' => 'available',
             'governorate' => 'homs',
-            'city'=>'Al hadara',
+            'city' => 'Al hadara',
             'area' => 65.02,
             'price' => 100.20,
         ]);
-          apartmentDetail::create([
+        apartmentDetail::create([
             'owner_id' => 3,
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
@@ -37,11 +39,11 @@ class ApartmentSeeder extends Seeder
             'available_to' => '1990-02-01',
             'status' => 'available',
             'governorate' => 'homs',
-            'city'=>'Karam al sham',
+            'city' => 'Karam al sham',
             'area' => 65.02,
             'price' => 500.20,
         ]);
-         apartmentDetail::create([
+        apartmentDetail::create([
             'owner_id' => 2,
             'apartment_description' => 'Inside the building: It is preferable to choose the apartment in the middle, so that the remaining space or floor space is available.',
             'floorNumber' => 1,
@@ -50,8 +52,8 @@ class ApartmentSeeder extends Seeder
             'available_from' => '2025-01-01',
             'available_to' => '2025-02-01',
             'status' => 'available',
-            'governorate' => 'Damascuse',
-            'city'=>'Maza',
+            'governorate' => 'Damascus',
+            'city' => 'Maza',
             'area' => 65.02,
             'price' => 1000.20,
         ]);
