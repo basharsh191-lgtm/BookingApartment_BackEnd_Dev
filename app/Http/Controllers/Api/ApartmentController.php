@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ApartmentDetailResource;
 use App\Models\apartmentDetail;
 use App\Models\Apartment_details;
 use App\Models\User;
@@ -14,10 +15,11 @@ class ApartmentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): \Illuminate\Database\Eloquent\Collection
+    public function index()
     {
-        return apartmentDetail::all();
-
+        $apartmentDetail =  apartmentDetail::all();
+        $apartmentDetail->load('governorate');
+        return response()->json($apartmentDetail);
     }
 
     /**
@@ -37,7 +39,7 @@ public function show(apartmentDetail $apartmentDetail): JsonResponse
         ->first();
 
     $apartmentDetail->owner_info = $owner;
-
+    $apartmentDetail->load('governorate');
     return response()->json($apartmentDetail);
 }
 

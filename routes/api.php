@@ -63,11 +63,13 @@ Route::get('/apartments', [ApartmentController::class, 'index']);
 Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']);
 //عرض التقييم الخاص بالشقة
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
-
+//عرض البروفايل
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
-
+//تحديث البروفايل
 Route::post('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
-
+//طلب الفلترة
 Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
+//لاضافة او ازالة الشقة من المفضلة
 Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');
+//رؤية المفضلة
 Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite'])->middleware('auth:sanctum');

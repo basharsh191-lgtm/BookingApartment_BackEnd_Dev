@@ -87,15 +87,16 @@ class UserController extends Controller
         $validated = $request->validated();
 
         // معالجة صورة البروفايل
+
         if($request->hasFile('ProfileImage')){
             $validated['ProfileImage'] = $request->file('ProfileImage')->store('Profile', 'public');
         }
-
+        else {
+        $validated['ProfileImage'] = null;
+        }
         // معالجة صورة البطاقة
         if($request->hasFile('CardImage')){
             $validated['CardImage'] = $request->file('CardImage')->store('Card', 'public');
-        } else {
-            $validated['CardImage'] = null;
         }
 
         $user = User::create([
@@ -107,9 +108,7 @@ class UserController extends Controller
             'BirthDate' => $validated['BirthDate'],
             'CardImage' => $validated['CardImage'],
             'is_approved' => 0
-
         ]);
-
         return response()->json([
             'message' => 'Account created successfully! Please wait for admin approval.',
             'user_id' => $user->id,
@@ -146,7 +145,18 @@ class UserController extends Controller
         }
             else
         $token = $user->createToken('auth_Token')->plainTextToken;
-        return response()->json(['message' => 'Account log in successfully !', 'user' => $user, "Token" => $token], 200);
+    return response()->json([
+    'message' => 'Account log in successfully!',
+    'user' => [
+        'id' => $user->id,
+        'FirstName' => $user->FirstName,
+        'LastName' => $user->LastName,
+        'mobile' => $user->mobile,
+        'profile_image_url' => $user->profile_image_url,
+        'card_image_url'=>$user->card_image_url
+    ],
+    'token' => $token
+]);
     }
     public function logout(Request $request): JsonResponse
     {

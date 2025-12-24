@@ -23,6 +23,21 @@ class User extends Authenticatable
      */
     protected $guarded = [];
 
+    protected $appends = ['profile_image_url', 'card_image_url'];
+
+    public function getProfileImageUrlAttribute()
+    {
+        return $this->ProfileImage
+            ? asset('storage/' . $this->ProfileImage)
+            : null;
+    }
+
+    public function getCardImageUrlAttribute()
+    {
+        return $this->CardImage
+            ? asset('storage/' . $this->CardImage)
+            : null;
+    }
     /**
      * The attributes that should be hidden for serialization.
      *

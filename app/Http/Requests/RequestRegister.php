@@ -27,9 +27,9 @@ class RequestRegister extends FormRequest
         'LastName'=>'required|string|max:255',
         'mobile'=>'required|string|min:10|unique:users,mobile',
         'password'=>'required|string|max:15|confirmed',
-            'ProfileImage' => 'required|image|mimes:png,jpg,jpeg,gif|max:2048',
-            'BirthDate'=>'required|date|before:today',
-        'CardImage'=>'nullable|image|mimes:png,jpg,jpeg,gif|max:2048'
+        'ProfileImage' =>'nullable|image|mimes:png,jpg,jpeg,gif|max:2048',
+        'BirthDate'=>'required|date|before:today',
+        'CardImage'=>'required|image|mimes:png,jpg,jpeg,gif|max:2048'
 
 
         ];

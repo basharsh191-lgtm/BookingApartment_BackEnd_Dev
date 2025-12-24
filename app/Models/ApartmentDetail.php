@@ -19,7 +19,7 @@ class apartmentDetail extends Model
         'roomNumber',
         'available_from',
         'available_to',
-        'governorate',
+        'governorate_id',
         'city',
         'area',
         'price',
@@ -52,10 +52,14 @@ class apartmentDetail extends Model
     }
     public function getAvgRatingAttribute()
     {
-        return $this->ratings()->avg('stars') ?? 3;
+        return $this->ratings()->avg('stars') ?? 0;
     }
     public function images()
     {
         return $this->hasMany(ApartmentImage::class,'apartment_details_id');
+    }
+    public function governorate()
+    {
+    return $this->belongsTo(Province::class);
     }
 }

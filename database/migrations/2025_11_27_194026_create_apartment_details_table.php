@@ -15,6 +15,7 @@ return new class extends Migration
             Schema::create('apartment_details', function (Blueprint $table) {
                 $table->id();
                 $table->foreignId('owner_id')->constrained('users');
+                $table->foreignId('governorate_id')->constrained('provinces');
                 $table->text('apartment_description');
                 $table->integer('floorNumber');
                 $table->integer('roomNumber');
@@ -22,7 +23,7 @@ return new class extends Migration
                 $table->date('available_from');
                 $table->date('available_to')->nullable();
                 $table->enum('status', ['available', 'not_available'])->default('available');
-                $table->string('governorate', 50);
+                //$table->string('governorate', 50);
                 $table->string('city');
                 $table->float('area');
                 $table->decimal('price',10,2);

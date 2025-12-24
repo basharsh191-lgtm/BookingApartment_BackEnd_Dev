@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\apartment_detail;
 use App\Models\apartmentDetail;
 use App\Models\Booking;
+use App\Models\Province;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -28,7 +29,7 @@ public function store(Request $request): JsonResponse
         'available_from' => 'required|date|after_or_equal:today',
         'available_to' => 'nullable|date|after_or_equal:available_from',
         'city' => 'required|string|max:100',
-        'governorate' => 'required|string|max:100',
+        'governorate_id' => 'required|exists:provinces,id',
         'area' => 'required|numeric|min:1',
         'price' => 'required|numeric|min:0',
     ]);
@@ -39,20 +40,25 @@ public function store(Request $request): JsonResponse
 
     // إنشاء الشقة (بلا الصور)
     $apartment = apartmentDetail::create($validated);
-
     // حفظ الصور (كل صورة ب حقل بادلت بيز)
-    foreach ($request->file('image') as $image) {
+    if($request->hasFile('image'))
+    {
+    foreach ($request->file('image') as $image)
+        {
         $path = $image->store('apartments', 'public');
-
         $apartment->images()->create([
             'image_path' => $path
         ]);
+        }
     }
 
+    $apartment->load('images', 'governorate');
+
+    // 2. إرجاع استجابة JSON نظيفة ومنظمة
     return response()->json([
         'status' => true,
         'message' => 'تم إضافة الشقة بنجاح',
-        'data' => $apartment->load('images')
+        'data' => $apartment
     ], 201);
 }
 

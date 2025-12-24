@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Governorate;
+use App\Models\Province;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -20,8 +22,12 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         [
+
+            $this->call(ProvinceSeeder::class),
             $this->call(AdminSeeder::class),
             $this->call(ApartmentSeeder::class),
+            $this->call(BookingSeeder::class),
+
         ];
     }
 }

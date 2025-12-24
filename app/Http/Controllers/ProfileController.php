@@ -11,13 +11,13 @@ class ProfileController extends Controller
     public function showProfile($id)
     {
         $profile=User::findOrFail($id);
-        $profile->makeHidden(['user_type','is_approved','created_at','updated_at']);
+        $profile->makeHidden(['user_type','is_approved','created_at','updated_at','ProfileImage','CardImage']);
         return response()->json([
             'message' => 'The profile successfully displayed.',
             'profile' => $profile,
         ], 200);
     }
-  public function UpdateProfile(Request $request)
+public function UpdateProfile(Request $request)
 {
     $id = Auth::id();
 
@@ -36,13 +36,14 @@ class ProfileController extends Controller
     }
 
     $profile = User::findOrFail($id);
+    $profile->makeHidden(['user_type','is_approved','created_at','updated_at','ProfileImage','CardImage']);
 
-     if ($request->hasFile('ProfileImage')) {
+    if ($request->hasFile('ProfileImage')) {
         $path = $request->file('ProfileImage')->store('profiles', 'public');
         $validate['ProfileImage'] = $path;
     }
 
-     if ($request->hasFile('CardImage')) {
+    if ($request->hasFile('CardImage')) {
         $path = $request->file('CardImage')->store('cards', 'public');
         $validate['CardImage'] = $path;
     }

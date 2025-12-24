@@ -33,7 +33,6 @@ class AdminSeeder extends Seeder
             'ProfileImage' =>  'default.jpg',
             'BirthDate' => '1990-01-01',
             'CardImage' => 'default.jpg',
-
             'is_approved' => 0,
             'user_type' => 'user'
         ]);
