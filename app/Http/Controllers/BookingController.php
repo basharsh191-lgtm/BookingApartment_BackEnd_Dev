@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\apartmentDetail;
+use App\Models\ApartmentDetail;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -20,7 +20,8 @@ class BookingController extends Controller
             'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
-        $apartment = apartmentDetail::find($request->apartment_id);
+        //  جلب الفترات المعروضة مع الشقة
+        $apartment = ApartmentDetail::with('displayPeriods')->find($request->apartment_id);
 
         if ($apartment->scheduled_for_deletion) {
             return response()->json([
@@ -42,13 +43,34 @@ class BookingController extends Controller
         $availableEnd = $apartment->available_to
             ? Carbon::parse($apartment->available_to)
             : Carbon::create(2100, 1, 1);
+
         if ($start < $availableStart || $end > $availableEnd) {
             return response()->json([
                 'status' => false,
                 'message' => 'مدة الحجز تتجاوز فترة توافر الشقة'
             ], 400);
         }
+        // التحقق من الفترات المعروضة
+        $isWithinDisplayPeriod = false;
+        foreach ($apartment->displayPeriods as $period) {
+            $periodStart = Carbon::parse($period->display_start_date);
+            $periodEnd = Carbon::parse($period->display_end_date);
 
+            // التحقق إذا كانت فترة الحجز كاملة ضمن فترة معروضة
+            if ($start >= $periodStart && $end <= $periodEnd) {
+                $isWithinDisplayPeriod = true;
+                break;
+            }
+        }
+
+        if (!$isWithinDisplayPeriod) {
+            return response()->json([
+                'status' => false,
+                'message' => 'الفترة المطلوبة غير متاحة للحجز (غير ضمن الفترات المعروضة)'
+            ], 400);
+        }
+
+        // التحقق من التداخل مع حجوزات مقبولة
         $overlap = Booking::where('apartment_id', $apartment->id)
             ->where('status', 'accepted')
             ->where(function ($q) use ($start, $end) {
@@ -60,12 +82,14 @@ class BookingController extends Controller
                     });
             })
             ->exists();
+
         if ($overlap) {
             return response()->json([
                 'status' => false,
                 'message' => 'هناك حجز آخر متداخل مع هذه الفترة'
             ], 409);
         }
+
         // منع إرسال أكثر من طلب pending لنفس الشقة
         $hasPending = Booking::where('apartment_id', $apartment->id)
             ->where('tenant_id', Auth::id())

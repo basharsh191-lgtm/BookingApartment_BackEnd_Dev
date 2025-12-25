@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\apartmentDetail;
+use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use App\Models\Rating;
 use Illuminate\Http\Request;

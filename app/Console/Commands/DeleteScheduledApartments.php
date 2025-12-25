@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\apartmentDetail;
+use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -29,7 +29,7 @@ class DeleteScheduledApartments extends Command
     {
         $this->info('Starting scheduled apartments deletion...');
 
-        $apartments = apartmentDetail::where('scheduled_for_deletion', true)
+        $apartments = ApartmentDetail::where('scheduled_for_deletion', true)
             ->get();
 
         $this->info("Found {$apartments->count()} apartments scheduled for deletion");

@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('apartment_imags', function (Blueprint $table) {
+        Schema::create('display_periods', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('apartment_details_id')
+            $table->foreignId('apartment_id')
                 ->constrained('apartment_details')
-                ->cascadeOnDelete();
-            $table->string('image_path');
+                ->onDelete('cascade');
+            $table->date('display_start_date');
+            $table->date('display_end_date');
             $table->timestamps();
         });
     }
@@ -26,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('apartment_images');
+        Schema::dropIfExists('display_periods');
     }
 };

@@ -37,8 +37,8 @@ class AdminSeeder extends Seeder
             'user_type' => 'user'
         ]);
         User::create([
-            'FirstName' => 'Ali',
-            'LastName' => 'Ali',
+            'FirstName' => 'Ghazal',
+            'LastName' => 'Kawas',
             'mobile' => '0999459222',
             'password' => Hash::make('1122334455'),
             'ProfileImage' =>  'default.jpg',

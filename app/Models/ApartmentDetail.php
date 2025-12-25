@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class apartmentDetail extends Model
+class ApartmentDetail extends Model
 {
     protected $table = 'apartment_details';
 
@@ -60,6 +60,25 @@ class apartmentDetail extends Model
     }
     public function governorate()
     {
-    return $this->belongsTo(Province::class);
+    return $this->belongsTo(Province::class,'governorate_id');
+    }
+    public function displayPeriods()
+    {
+        return $this->hasMany(DisplayPeriod::class , 'apartment_id');
+    }
+
+    /**
+     * عند إنشاء شقة، ننشئ فترة معروضة كاملة تلقائياً
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($apartment) {
+            $apartment->displayPeriods()->create([
+                'display_start_date' => $apartment->available_from,
+                'display_end_date' => $apartment->available_to ?? '01-01-2200'
+            ]);
+        });
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\apartmentDetail;
+use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use App\Models\favorit;
 use Illuminate\Http\JsonResponse;
@@ -105,7 +105,7 @@ class TenantController extends Controller
         $tenantId = Auth::id();
 
         $bookings = Booking::with([
-            'apartment',
+            'apartment.images',
         ])
             ->where('tenant_id', $tenantId)
             ->orderByDesc('created_at')

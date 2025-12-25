@@ -9,6 +9,6 @@ class Province extends Model
     protected $fillable = ['name'];
     public function apartment()
     {
-        return $this->hasMany(apartmentDetail::class);
+        return $this->hasMany(ApartmentDetail::class);
     }
 }

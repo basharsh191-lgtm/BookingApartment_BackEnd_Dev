@@ -14,6 +14,6 @@ protected $guarded=[];
     }
     public function apartment()
     {
-        return $this->belongsTo(apartmentDetail::class,'apartment_id');
+        return $this->belongsTo(ApartmentDetail::class,'apartment_id');
     }
 }
