@@ -23,7 +23,6 @@ return new class extends Migration
                 $table->date('available_from');
                 $table->date('available_to')->nullable();
                 $table->enum('status', ['available', 'not_available'])->default('available');
-                //$table->string('governorate', 50);
                 $table->string('city');
                 $table->float('area');
                 $table->decimal('price',10,2);

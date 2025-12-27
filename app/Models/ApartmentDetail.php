@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Database\Eloquent\Model;
 
 class ApartmentDetail extends Model
@@ -31,18 +33,47 @@ class ApartmentDetail extends Model
 
 
     protected $casts = [
-        'available_from' => 'date',
-        'available_to' => 'date',
+
+        'available_from' => 'date:d-m-Y',
+        'available_to' => 'date:d-m-Y',
         'price' => 'decimal:2',
         'free_wifi' => 'boolean',
     ];
+
+public function scopeFilterByGovernorate($query, $governorateId)
+    {
+        if ($governorateId) {
+            return $query->where('governorate_id', $governorateId);
+        }
+        return $query;
+    }
+    public function scopeFilterByCity($query,$city)
+    {
+        if($city)
+        {
+            return $query->where('city','LIKE',"%".$city."%");
+        }
+        return $query;
+    }
+public function scopeAvailableForEntirePeriod($query, ?string $startDate, ?string $endDate)
+{
+    if (!$startDate || !$endDate) {
+        return $query;
+    }
+    return $query->whereHas('displayPeriods', function ($q) use ($startDate, $endDate) {
+            $checkIn = Carbon::parse($startDate)->format('Y-m-d');
+            $checkOut = Carbon::parse($endDate)->format('Y-m-d');
+            $q->where('display_start_date', '<=', $checkIn)
+            ->where('display_end_date', '>=', $checkOut);
+    });
+}
 
 
     public function user()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
-    public function ratings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function ratings()
     {
         return $this->hasOne(Rating::class, 'apartment_id');
     }
@@ -77,8 +108,9 @@ class ApartmentDetail extends Model
         static::created(function ($apartment) {
             $apartment->displayPeriods()->create([
                 'display_start_date' => $apartment->available_from,
-                'display_end_date' => $apartment->available_to ?? '01-01-2200'
+                'display_end_date' => $apartment->available_to ?? '2200-01-01'
             ]);
         });
     }
+
 }

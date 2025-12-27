@@ -51,14 +51,12 @@ class User extends Authenticatable
 
         // الحصول على الرابط الأساسي من config
         $baseUrl = config('app.url', 'http://10.0.2.2:8000');
-
         // إذا كان المسار يحتوي على storage/ بالفعل
         if (strpos($imagePath, 'storage/') === 0) {
             $relativePath = substr($imagePath, 8);
         } else {
             $relativePath = $imagePath;
         }
-
         // بناء الرابط الكامل
         return rtrim($baseUrl, '/') . '/storage/' . ltrim($relativePath, '/');
     }

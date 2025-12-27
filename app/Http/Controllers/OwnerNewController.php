@@ -17,7 +17,7 @@ class OwnerNewController extends Controller
     /**
      * إنشاء شقة جديدة)
      */
-    public function store(Request $request): JsonResponse
+public function store(Request $request): JsonResponse
     {
         // 1. التحقق من البيانات
         $validated = $request->validate([

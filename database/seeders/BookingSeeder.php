@@ -16,24 +16,24 @@ class BookingSeeder extends Seeder
     Booking::create([
         'apartment_id'=>2,
         'tenant_id'=>2,
-        'start_date'=>'21-12-2025',
-        'end_date'=>'20-6-2026',
+        'start_date'=>'21-6-2026',
+        'end_date'=>'20-6-2027',
         'status'=>'pending',
         'total_price'=>100.2,
     ]);
     Booking::create([
         'apartment_id'=>1,
         'tenant_id'=>3,
-        'start_date'=>'21-12-2025',
-        'end_date'=>'20-6-2026',
+        'start_date'=>'21-6-2026',
+        'end_date'=>'20-6-2027',
         'status'=>'accepted',
         'total_price'=>100.2,
     ]);
     Booking::create([
         'apartment_id'=>3,
         'tenant_id'=>3,
-        'start_date'=>'21-12-2025',
-        'end_date'=>'20-6-2026',
+        'start_date'=>'21-6-2026',
+        'end_date'=>'20-6-2027',
         'status'=>'finished',
         'total_price'=>100.2,
     ]);
