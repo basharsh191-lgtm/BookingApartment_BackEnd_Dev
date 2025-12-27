@@ -14,20 +14,20 @@ class ProvinceSeeder extends Seeder
    public function run()
 {
     $provinces = [
-        'دمشق',
-        'ريف دمشق',
-        'حلب',
-        'حمص',
-        'حماة',
-        'اللاذقية',
-        'طرطوس',
-        'إدلب',
-        'دير الزور',
-        'الرقة',
-        'الحسكة',
-        'السويداء',
-        'درعا',
-        'القنيطرة',
+        'Damascus',
+        'Rif Dimashq',
+        'Aleppo',
+        'Homs',
+        'Latakia',
+        'Hama',
+        'Idlib',
+        'Tartus',
+        'Al-Hasakah',
+        'Deir ez-Zor',
+        'As-Suwayda',
+        'Raqqa',
+        'Daraa',
+        'Quneitra',
     ];
 
     foreach ($provinces as $province) {

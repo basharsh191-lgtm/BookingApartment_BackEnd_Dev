@@ -55,6 +55,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/tenant/bookings/{id}/update', [TenantController::class, 'updateBooking']);
    //تقييم الشقة
     Route::post('user/rating/{apartment_id}',[RatingController::class,'storeRating']);
+    //فلترة حسب محافظة /مدينة/تاريخ متاح
+    Route::get('/filter/goverCityDate',[ApartmentController::class,'filterApartment']);
+    //فلترة سعر/واي فاي/عدد غرف
+    Route::get('/filter/PriceWiFi',[ApartmentController::class,'filterApartmentPrice']);
+    //رؤية المفضلة
+    Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite']);
+     //لاضافة او ازالة الشقة من المفضلة
+    Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite']);
+    //تحديث البروفايل
+    Route::post('updateProfile',[ProfileController::class,'UpdateProfile']);
+    //تغير كلمة المرور في بروفايل
+    Route::post('/profile/change-password', [ProfileController::class, 'changePassword']);
+
 });
 
 // عرض الشقق (ApartmentController)
@@ -65,11 +78,4 @@ Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 //عرض البروفايل
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
-//تحديث البروفايل
-Route::post('updateProfile',[ProfileController::class,'UpdateProfile'])->middleware('auth:sanctum');
-//طلب الفلترة
-Route::post('/user/searchApartment',[ApartmentController::class,'searchApartment']);
-//لاضافة او ازالة الشقة من المفضلة
-Route::post('/apartment/toggleFavorite/{apartmentId}',[TenantController::class,'toggleFavorite'])->middleware('auth:sanctum');
-//رؤية المفضلة
-Route::get('/apartment/showFavorite',[TenantController::class,'showFavorite'])->middleware('auth:sanctum');
+

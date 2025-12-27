@@ -21,6 +21,7 @@ class ApartmentController extends Controller
         $apartmentDetail->load('governorate');
         $apartmentDetail->load('images');
         $apartmentDetail->load('displayPeriods');
+
         return response()->json($apartmentDetail);
     }
 
@@ -32,19 +33,16 @@ class ApartmentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ApartmentDetail $apartmentDetail): JsonResponse
-    {
-        $apartmentDetail->load(['ratings.user']);
-        $apartmentDetail->load('images');
-
-        $owner = User::select('id', 'FirstName', 'LastName', 'mobile')
-            ->where('id', $apartmentDetail->owner_id)
-            ->first();
-
+public function show(apartmentDetail $apartmentDetail): JsonResponse
+{
+    $apartmentDetail->load(['ratings.user']);
+    $apartmentDetail->load('images');
+    $owner = User::select('id', 'FirstName','LastName', 'mobile')
+        ->where('id', $apartmentDetail->owner_id)
+        ->first();
         $apartmentDetail->owner_info = $owner;
         $apartmentDetail->load('governorate');
         $apartmentDetail->load('displayPeriods');
-
         return response()->json($apartmentDetail);
     }
 
@@ -64,38 +62,57 @@ class ApartmentController extends Controller
     {
         //
     }
+public function filterApartment(Request $request)
+{
+    $governorateId = $request->input('governorate_id');
+    $city = $request->input('city');
+    $startDate = $request->input('display_start_date');
+    $endDate = $request->input('display_end_date');
 
-    public function searchApartment(Request $request)
+    if (empty($governorateId) && empty($city) && empty($startDate) && empty($endDate))
     {
-        $query = ApartmentDetail::query();
+        return response()->json(['message' => 'Please provide at least one filter criteria.'], 204);
+    }
 
-        if ($request->has('governorate') && $request->input('governorate') != '') {
-            $query->where('governorate', 'LIKE', "%{$request->input('governorate')}%");
-        }
+    $results = apartmentDetail::query()
+        ->filterByGovernorate($governorateId)
+        ->filterByCity($city)
+        ->availableForEntirePeriod($startDate, $endDate)
+        ->get();
+    return response()->json($results, 200);
+}
 
-        if ($request->has('city') && $request->input('city') != '') {
-            $query->where('city', 'LIKE', "%{$request->input('city')}%");
-        }
 
-
-        if ($request->filled('min_price')) {
-            $query->where('price', '>=', $request->input('min_price'));
-        }
+public function filterApartmentPrice(Request $request)
+{
+    $query = apartmentDetail::query();
+    $hasSearchCriteria=false;
+    if ($request->filled('min_price')) {
+        $query->where('price', '>=', $request->input('min_price'));
+        $hasSearchCriteria=true;
+    }
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->input('max_price'));
+            $hasSearchCriteria=true;
         }
-
-
-        if ($request->has('roomNumber') && $request->input('roomNumber') != '') {
+        if ($request->has('roomNumber') && $request->input('roomNumber') != '')
+        {
             $query->where('roomNumber', '=', $request->input('roomNumber'));
+            $hasSearchCriteria=true;
         }
-
+        if($request->has('free_wifi') && $request->input('free_wifi') != '')
+        {
+            $query->where('free_wifi','=',$request->input('free_wifi'));
+            $hasSearchCriteria=true;
+        }
+        if(!$hasSearchCriteria)
+        {
+            return response()->json(['message'=>'No search criteria provided,please enter at least one filter'], 204);
+        }
         $apartments = $query->get();
-
         if ($apartments->count() == 0) {
-            return response()->json(['message' => "Your search did not yield any results. "], 200);
+            return response()->json(['message' => "Sorry, no results found."], 204);
         }
-
         return response()->json([
             'success' => true,
             'data' => $apartments,
