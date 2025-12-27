@@ -79,6 +79,9 @@ public function filterApartment(Request $request)
         ->filterByCity($city)
         ->availableForEntirePeriod($startDate, $endDate)
         ->get();
+        $results->load('governorate');
+        $results->load('images');
+        $results->load('displayPeriods');
     return response()->json($results, 200);
 }
 
@@ -113,6 +116,9 @@ public function filterApartmentPrice(Request $request)
         if ($apartments->count() == 0) {
             return response()->json(['message' => "Sorry, no results found."], 204);
         }
+        $apartments->load('governorate');
+        $apartments->load('images');
+        $apartments->load('displayPeriods');
         return response()->json([
             'success' => true,
             'data' => $apartments,
