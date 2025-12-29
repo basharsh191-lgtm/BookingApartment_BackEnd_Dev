@@ -12,34 +12,53 @@ class RatingController extends Controller
 {
 
     //هاد شغال بس ناقصو انو حالة البيت يلي استأجر منهي ولا لا الخ
-    public function storeRating(Request $request,$apartment)
+    public function storeRating(Request $request, $apartmentId)
     {
         $request->validate([
-            'stars'=>'required|integer',
-            'comment'=>'nullable|string'
+            'stars'   => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string|max:500',
         ]);
-        $user_id=Auth::id();
 
-        $hasbooking=Booking::where('tenant_id',$user_id)
-        ->where('apartment_id',$apartment)->where('status','finished');
-    if(!$hasbooking)
-        {
+        $userId = Auth::id();
+
+        $hasFinishedBooking = Booking::where('tenant_id', $userId)
+            ->where('apartment_id', $apartmentId)
+            ->where('status', 'finished')
+            ->exists();
+
+        if (! $hasFinishedBooking) {
             return response()->json([
-                'success'=>false,
-                'massage'=>'Erorr,انت ما حجزت الشقة لتقيمها 🙁'
-            ]
-            , 401);
+                'success' => false,
+                'message' => 'لا يمكنك تقييم هذه الشقة لأنك لم تحجزها أو لم ينتهِ الحجز بعد'
+            ], 403);
         }
-        Rating::create([
-            'user_id'=>$user_id,
-            'apartment_id'=>$apartment,
-            'stars'=>$request->stars,
-            'comment'=>$request->comment,
+
+        //  منع التقييم أكثر من مرة
+        $alreadyRated = Rating::where('user_id', $userId)
+            ->where('apartment_id', $apartmentId)
+            ->exists();
+
+        if ($alreadyRated) {
+            return response()->json([
+                'success' => false,
+                'message' => 'لقد قمت بتقييم هذه الشقة مسبقًا'
+            ], 409);
+        }
+
+        $rating = Rating::create([
+            'user_id'      => $userId,
+            'apartment_id' => $apartmentId,
+            'stars'        => $request->stars,
+            'comment'      => $request->comment,
         ]);
+
         return response()->json([
-            'success'=>'تم اضافة التقييم بنجاح',
-        ], 200);
+            'success' => true,
+            'message' => 'تم إضافة التقييم بنجاح',
+            'data'    => $rating
+        ], 201);
     }
+
 
     public function showRating($apartment)
     {

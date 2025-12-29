@@ -17,13 +17,37 @@ class ApartmentController extends Controller
      */
     public function index()
     {
-        $apartmentDetail = ApartmentDetail::all();
-        $apartmentDetail->load('governorate');
-        $apartmentDetail->load('images');
-        $apartmentDetail->load('displayPeriods');
+        $apartments = ApartmentDetail::with([
+            'governorate',
+            'images',
+            'displayPeriods',
+            'ratings'
+        ])->get();
 
-        return response()->json($apartmentDetail);
+        $response = $apartments->map(function ($apartment) {
+            return [
+                'id' => $apartment->id,
+                'apartment_description' => $apartment->apartment_description,
+                'floorNumber' => $apartment->floorNumber,
+                'roomNumber' => $apartment->roomNumber,
+                'free_wifi' => $apartment->free_wifi,
+                'available_from' => $apartment->available_from,
+                'available_to' => $apartment->available_to,
+                'city' => $apartment->city,
+                'governorate' => $apartment->governorate,
+                'area' => $apartment->area,
+                'price' => $apartment->price,
+                'images' => $apartment->images,
+                'avg_rating' => $apartment->avg_rating,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $response
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
@@ -33,17 +57,56 @@ class ApartmentController extends Controller
     /**
      * Display the specified resource.
      */
-public function show(apartmentDetail $apartmentDetail): JsonResponse
-{
-    $apartmentDetail->load(['ratings.user']);
-    $apartmentDetail->load('images');
-    $owner = User::select('id', 'FirstName','LastName', 'mobile')
-        ->where('id', $apartmentDetail->owner_id)
-        ->first();
-        $apartmentDetail->owner_info = $owner;
-        $apartmentDetail->load('governorate');
-        $apartmentDetail->load('displayPeriods');
-        return response()->json($apartmentDetail);
+    public function show(ApartmentDetail $apartmentDetail): JsonResponse
+    {
+        $apartmentDetail->load([
+            'ratings.user',
+            'images',
+            'governorate',
+            'displayPeriods'
+        ]);
+
+        $owner = User::select('id', 'FirstName', 'LastName', 'mobile')
+            ->find($apartmentDetail->owner_id);
+
+        $response = [
+            'id' => $apartmentDetail->id,
+            'apartment_description' => $apartmentDetail->apartment_description,
+            'floorNumber' => $apartmentDetail->floorNumber,
+            'roomNumber' => $apartmentDetail->roomNumber,
+            'free_wifi' => $apartmentDetail->free_wifi,
+            'available_from' => $apartmentDetail->available_from,
+            'available_to' => $apartmentDetail->available_to,
+            'city' => $apartmentDetail->city,
+            'governorate' => $apartmentDetail->governorate,
+            'area' => $apartmentDetail->area,
+            'price' => $apartmentDetail->price,
+            'scheduled_for_deletion' => $apartmentDetail->scheduled_for_deletion,
+            'images' => $apartmentDetail->images,
+            'displayPeriods' => $apartmentDetail->displayPeriods,
+            'owner_info' => [
+                'FirstName' => $owner->FirstName ?? null,
+                'LastName' => $owner->LastName ?? null,
+                'mobile' => $owner->mobile ?? null,
+            ],
+            'ratings' => $apartmentDetail->ratings()->with('user')->get()->map(function($rating) {
+                return [
+                    'id' => $rating->id,
+                    'stars' => $rating->stars,
+                    'user' => [
+                        'FirstName' => $rating->user->FirstName ?? null,
+                        'LastName' => $rating->user->LastName ?? null,
+                    ],
+                    'created_at' => $rating->created_at,
+                ];
+            }),
+            'avg_rating' => $apartmentDetail->avg_rating,
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $response
+        ]);
     }
 
     /**
@@ -62,55 +125,52 @@ public function show(apartmentDetail $apartmentDetail): JsonResponse
     {
         //
     }
-public function filterApartment(Request $request)
-{
-    $governorateId = $request->input('governorate_id');
-    $city = $request->input('city');
-    $startDate = $request->input('display_start_date');
-    $endDate = $request->input('display_end_date');
 
-    if (empty($governorateId) && empty($city) && empty($startDate) && empty($endDate))
+    public function filterApartment(Request $request)
     {
-        return response()->json(['message' => 'Please provide at least one filter criteria.'], 204);
-    }
+        $governorateId = $request->input('governorate_id');
+        $city = $request->input('city');
+        $startDate = $request->input('display_start_date');
+        $endDate = $request->input('display_end_date');
 
-    $results = apartmentDetail::query()
-        ->filterByGovernorate($governorateId)
-        ->filterByCity($city)
-        ->availableForEntirePeriod($startDate, $endDate)
-        ->get();
+        if (empty($governorateId) && empty($city) && empty($startDate) && empty($endDate)) {
+            return response()->json(['message' => 'Please provide at least one filter criteria.'], 204);
+        }
+
+        $results = apartmentDetail::query()
+            ->filterByGovernorate($governorateId)
+            ->filterByCity($city)
+            ->availableForEntirePeriod($startDate, $endDate)
+            ->get();
         $results->load('governorate');
         $results->load('images');
         $results->load('displayPeriods');
-    return response()->json($results, 200);
-}
-
-
-public function filterApartmentPrice(Request $request)
-{
-    $query = apartmentDetail::query();
-    $hasSearchCriteria=false;
-    if ($request->filled('min_price')) {
-        $query->where('price', '>=', $request->input('min_price'));
-        $hasSearchCriteria=true;
+        return response()->json($results, 200);
     }
+
+
+    public function filterApartmentPrice(Request $request)
+    {
+        $query = apartmentDetail::query();
+        $hasSearchCriteria = false;
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', $request->input('min_price'));
+            $hasSearchCriteria = true;
+        }
         if ($request->filled('max_price')) {
             $query->where('price', '<=', $request->input('max_price'));
-            $hasSearchCriteria=true;
+            $hasSearchCriteria = true;
         }
-        if ($request->has('roomNumber') && $request->input('roomNumber') != '')
-        {
+        if ($request->has('roomNumber') && $request->input('roomNumber') != '') {
             $query->where('roomNumber', '=', $request->input('roomNumber'));
-            $hasSearchCriteria=true;
+            $hasSearchCriteria = true;
         }
-        if($request->has('free_wifi') && $request->input('free_wifi') != '')
-        {
-            $query->where('free_wifi','=',$request->input('free_wifi'));
-            $hasSearchCriteria=true;
+        if ($request->has('free_wifi') && $request->input('free_wifi') != '') {
+            $query->where('free_wifi', '=', $request->input('free_wifi'));
+            $hasSearchCriteria = true;
         }
-        if(!$hasSearchCriteria)
-        {
-            return response()->json(['message'=>'No search criteria provided,please enter at least one filter'], 204);
+        if (!$hasSearchCriteria) {
+            return response()->json(['message' => 'No search criteria provided,please enter at least one filter'], 204);
         }
         $apartments = $query->get();
         if ($apartments->count() == 0) {

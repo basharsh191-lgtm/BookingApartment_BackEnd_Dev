@@ -17,7 +17,7 @@ class OwnerNewController extends Controller
     /**
      * إنشاء شقة جديدة)
      */
-public function store(Request $request): JsonResponse
+    public function store(Request $request): JsonResponse
     {
         // 1. التحقق من البيانات
         $validated = $request->validate([
@@ -93,84 +93,118 @@ public function store(Request $request): JsonResponse
     /**
      * تعديل بيانات الشقة
      */
-public function update(Request $request, $id)
-{
-    $apartment = ApartmentDetail::where('id', $id)
-        ->where('owner_id', Auth::id())->with('images')
-        ->first();
+    public function update(Request $request, $id)
+    {
+        $apartment = ApartmentDetail::where('id', $id)
+            ->where('owner_id', Auth::id())->with('images')
+            ->first();
 
-    if (!$apartment) {
-        return response()->json([
-            'status' => false,
-            'message' => 'غير مصرح لك أو الشقة غير موجودة'
-        ], 403);
-    }
+        if (!$apartment) {
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك أو الشقة غير موجودة'
+            ], 403);
+        }
 
-    $validated = $request->validate([
-        'apartment_description' => 'nullable|string|max:255',
-        'available_from' => 'nullable|date',
-        'available_to' => 'nullable|date|after_or_equal:available_from',
-        'city' => 'nullable|string|max:100',
-        'governorate' => 'nullable|string|max:100',
-        'area' => 'nullable|numeric|min:1',
-        'price' => 'nullable|numeric|min:0',
-        'free_wifi' => 'nullable|boolean',
-        'image' => 'nullable|array',
-        'image.*' => 'image|mimes:jpeg,png,jpg,gif',
-    ]);
+        $validated = $request->validate([
+            'apartment_description' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'governorate' => 'nullable|string|max:100',
+            'area' => 'nullable|numeric|min:1',
+            'price' => 'nullable|numeric|min:0',
+            'free_wifi' => 'nullable|boolean',
+            'image' => 'nullable|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif',
+        ]);
 
-    $apartment->update($validated);
+        $apartment->update($validated);
 
-    if ($request->hasFile('image')) {
+        if ($request->hasFile('image')) {
 
-        foreach ($apartment->images as $oldImage) {
-            if (Storage::disk('public')->exists($oldImage->image_path)) {
-                Storage::disk('public')->delete($oldImage->image_path);
+            foreach ($apartment->images as $oldImage) {
+                if (Storage::disk('public')->exists($oldImage->image_path)) {
+                    Storage::disk('public')->delete($oldImage->image_path);
+                }
+                $oldImage->delete();
             }
-            $oldImage->delete();
+
+            // حفظ الصور الجديدة
+            foreach ($request->file('image') as $image) {
+                $path = $image->store('apartments', 'public');
+
+                $apartment->images()->create([
+                    'image_path' => $path
+                ]);
+            }
         }
 
-        // حفظ الصور الجديدة
-        foreach ($request->file('image') as $image) {
-            $path = $image->store('apartments', 'public');
+        return response()->json([
+            'message' => 'تم تعديل الشقة بنجاح',
+            'data' => $apartment->load('images'),
 
-            $apartment->images()->create([
-                'image_path' => $path
-            ]);
-        }
+
+        ]);
     }
 
-    return response()->json([
-        'message' => 'تم تعديل الشقة بنجاح',
-        'data' => $apartment->load('images'),
-
-
-    ]);
-}
     /**
      * تعديل فترة التوافر
      */
     public function setAvailability(Request $request, $id): JsonResponse
     {
         $validated = $request->validate([
-            'available_from' => 'required|date|after_or_equal:today',
+            'available_from' => 'required|date',
             'available_to' => 'required|date|after_or_equal:available_from',
         ]);
 
         $apartment = ApartmentDetail::findOrFail($id);
 
-        // تحقق من الملكية
         if ($apartment->owner_id !== Auth::id()) {
-            return response()->json(['error' => 'غير مصرح'], 403);
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك'
+            ], 403);
         }
 
-        $apartment->update($validated);
+        $newStart = Carbon::parse($validated['available_from']);
+        $newEnd = Carbon::parse($validated['available_to']);
+
+        //  منع التعارض مع الحجوزات المقبولة
+        $hasAcceptedOverlap = Booking::where('apartment_id', $apartment->id)
+            ->where('status', 'accepted')
+            ->where(function ($q) use ($newStart, $newEnd) {
+                $q->whereBetween('start_date', [$newStart, $newEnd])
+                    ->orWhereBetween('end_date', [$newStart, $newEnd])
+                    ->orWhere(function ($q2) use ($newStart, $newEnd) {
+                        $q2->where('start_date', '<=', $newStart)
+                            ->where('end_date', '>=', $newEnd);
+                    });
+            })
+            ->exists();
+
+        if ($hasAcceptedOverlap) {
+            return response()->json([
+                'status' => false,
+                'message' => 'لا يمكن تعديل الإتاحة بسبب وجود حجز مقبول ضمن هذه الفترة'
+            ], 409);
+        }
+
+        $apartment->displayPeriods()->delete();
+        $apartment->displayPeriods()->create([
+            'display_start_date' => $newStart->toDateString(),
+            'display_end_date' => $newEnd->toDateString(),
+        ]);
+        $apartment->update([
+            'available_from' => $newStart->toDateString(),
+            'available_to' => $newEnd->toDateString(),
+        ]);
 
         return response()->json([
-            'message' => 'تم تحديث تواريخ الإتاحة بنجاح',
-            'data' => $apartment
+            'status' => true,
+            'message' => 'تم تحديث فترة الإتاحة بنجاح',
+            'data' => $apartment->fresh('displayPeriods')
         ]);
     }
+
 
     /**
      * حذف الشقة
@@ -215,7 +249,7 @@ public function update(Request $request, $id)
      */
     public function approve($id): JsonResponse
     {
-        $booking = Booking::with('apartment','apartment.displayPeriods')->findOrFail($id);
+        $booking = Booking::with('apartment', 'apartment.displayPeriods')->findOrFail($id);
 
         // التحقق من أن المستخدم هو مالك الشقة
         if ($booking->apartment->owner_id != Auth::id()) {
@@ -297,23 +331,17 @@ public function update(Request $request, $id)
                         'display_start_date' => $bookingEnd->copy()->addDay(),
                         'display_end_date' => $periodEnd,
                     ]);
-                }
-
-                //  الحجز من بداية الفترة
+                } //  الحجز من بداية الفترة
                 elseif ($bookingStart->eq($periodStart) && $bookingEnd < $periodEnd) {
                     $period->update([
                         'display_start_date' => $bookingEnd->copy()->addDay(),
                     ]);
-                }
-
-                //  الحجز حتى نهاية الفترة
+                } //  الحجز حتى نهاية الفترة
                 elseif ($bookingStart > $periodStart && $bookingEnd->eq($periodEnd)) {
                     $period->update([
                         'display_end_date' => $bookingStart->copy()->subDay()
                     ]);
-                }
-
-                //  الحجز يغطي الفترة كاملة
+                } //  الحجز يغطي الفترة كاملة
                 elseif ($bookingStart->eq($periodStart) && $bookingEnd->eq($periodEnd)) {
                     $period->delete();
                 }
@@ -322,6 +350,7 @@ public function update(Request $request, $id)
             }
         }
     }
+
     /**
      * رفض الحجز
      */
@@ -355,28 +384,70 @@ public function update(Request $request, $id)
     /**
      * عرض حجوزات المالك
      */
-    public function ownerBookings(): JsonResponse
+    public function ownerApartmentBookings($apartmentId): JsonResponse
     {
-        $bookings = Booking::with(['apartment','tenant']) // إزالة user مؤقتاً
-        ->whereHas('apartment', function($q) {
-            $q->where('owner_id', Auth::id());
-        })
-        ->orderBy('created_at', 'desc')
-        ->get();
+        $apartment = ApartmentDetail::where('id', $apartmentId)
+            ->where('owner_id', Auth::id())
+            ->firstOrFail();
 
+        $bookings = Booking::with(['tenant:id,FirstName,LastName,mobile,ProfileImage'])
+            ->where('apartment_id', $apartmentId)
+            ->orderByRaw("
+            CASE status
+                WHEN 'pending' THEN 1
+                WHEN 'accepted' THEN 2
+                WHEN 'finished' THEN 3
+                WHEN 'cancelled' THEN 4
+            END
+        ")
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'status' => $booking->status,
+                    'start_date' => $booking->start_date,
+                    'end_date' => $booking->end_date,
+                    'created_at' => $booking->created_at,
 
-        if ($bookings->isEmpty()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'لا توجد حجوزات حالياً',
-                'data' => []
-            ]);
-        }
+                    'tenant' => [
+                        'FirstName' => $booking->tenant->FirstName ?? null,
+                        'LastName' => $booking->tenant->LastName ?? null,
+                        'mobile' => $booking->tenant->mobile ?? null,
+                        'ProfileImage' => $booking->tenant->ProfileImage
+                            ? asset('storage/' . $booking->tenant->ProfileImage)
+                            : null,
+                    ],
+                ];
+            });
 
         return response()->json([
-            'status' => true,
-            'message' => 'جميع الحجوزات الخاصة بك',
+            'success' => true,
+            'message' => 'حجوزات الشقة',
+            'apartment' => $apartment,
+            'total_bookings' => $bookings->count(),
             'data' => $bookings
         ]);
     }
+
+    public function ownerApartments(): JsonResponse
+    {
+        $apartments = ApartmentDetail::with([
+            'images',
+            'governorate',
+            'displayPeriods'
+        ])
+            ->withCount('bookings')
+            ->where('owner_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'شققك مع عدد الحجوزات',
+            'data' => $apartments
+        ]);
+    }
+
+
 }

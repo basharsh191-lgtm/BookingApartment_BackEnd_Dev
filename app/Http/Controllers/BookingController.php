@@ -105,8 +105,7 @@ class BookingController extends Controller
 
         // حساب السعر
         $days = $start->diffInDays($end) + 1;
-        $dailyPrice = $apartment->price / 30;
-        $totalPrice = $dailyPrice * $days;
+        $totalPrice = $apartment->price *$days ;
 
         // إنشاء حجز بنتظار موافقة المالك فقط
         $booking = Booking::create([

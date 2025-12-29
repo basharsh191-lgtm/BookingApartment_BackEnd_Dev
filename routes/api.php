@@ -39,8 +39,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/owner/bookings/{id}/approve', [OwnerNewController::class, 'approve']);
     // رفض الحجز
     Route::patch('/owner/bookings/{id}/reject', [OwnerNewController::class, 'reject']);
-    // عرض كل الحجوزات الخاصة بالمالك
-    Route::get('/owner/bookings', [OwnerNewController::class, 'ownerBookings']);
+    // عرض كل الحجوزات الخاصة بشقة معينة للمالك مع تفاصيل الشقة
+    Route::get('/owner/apartments/{apartment_details}/bookings', [OwnerNewController::class, 'ownerApartmentBookings']);
+    // عرش شقق المالك
+    Route::get('/owner/apartments', [OwnerNewController::class, 'ownerApartments']);
 });
 
 // المستأجر (TenantController)

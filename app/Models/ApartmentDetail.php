@@ -77,13 +77,13 @@ public function scopeAvailableForEntirePeriod($query, ?string $startDate, ?strin
     {
         return $this->hasOne(Rating::class, 'apartment_id');
     }
+    public function getAvgRatingAttribute()
+    {
+        return round($this->ratings()->avg('stars') ?? 0, 2);
+    }
     public function favorit()
     {
         return $this->hasMany(favorit::class);
-    }
-    public function getAvgRatingAttribute()
-    {
-        return $this->ratings()->avg('stars') ?? 0;
     }
     public function images()
     {
@@ -98,6 +98,10 @@ public function scopeAvailableForEntirePeriod($query, ?string $startDate, ?strin
         return $this->hasMany(DisplayPeriod::class , 'apartment_id');
     }
 
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'apartment_id');
+    }
     /**
      * عند إنشاء شقة، ننشئ فترة معروضة كاملة تلقائياً
      */

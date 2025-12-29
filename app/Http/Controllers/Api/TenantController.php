@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use App\Models\favorit;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -54,49 +55,116 @@ class TenantController extends Controller
     }
     public function updateBooking(Request $request, $id): JsonResponse
     {
-        $booking = Booking::find($id);
+        try {
+            $booking = Booking::with(['apartment', 'apartment.displayPeriods'])->find($id);
 
-        if (!$booking || $booking->status === 'canceled') {
-            return response()->json(['status'=>false,'message'=>'الحجز غير موجود'],404);
-        }
+            if (!$booking) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'الحجز غير موجود'
+                ], 404);
+            }
 
-        if ($booking->tenant_id != Auth::id()) {
-            return response()->json(['status'=>false,'message'=>'غير مصرح لك بتعديل هذا الحجز'],403);
-        }
+            if ($booking->status === 'cancelled') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'لا يمكن تعديل حجز ملغى'
+                ], 400);
+            }
 
-        $request->validate([
-            'start_date' => 'date|nullable',
-            'end_date' => 'required|date|after_or_equal:start_date',
-        ]);
+            if ($booking->tenant_id != Auth::id()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'غير مصرح لك بتعديل هذا الحجز'
+                ], 403);
+            }
 
-        $apartment = $booking->apartment;
-        $start = \Carbon\Carbon::parse($request->start_date);
-        $end = \Carbon\Carbon::parse($request->end_date);
-        $availableStart = \Carbon\Carbon::parse($apartment->available_from);
-        $availableEnd = \Carbon\Carbon::parse($apartment->available_to);
+            $request->validate([
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+            ]);
 
-        if ($start < $availableStart || $end > $availableEnd) {
+            $apartment = $booking->apartment;
+            $start = Carbon::parse($request->start_date);
+            $end = Carbon::parse($request->end_date);
+
+            //  التحقق من فترة توافر الشقة
+            $availableStart = Carbon::parse($apartment->available_from);
+            $availableEnd = $apartment->available_to
+                ? Carbon::parse($apartment->available_to)
+                : Carbon::create(2100, 1, 1);
+
+            if ($start < $availableStart || $end > $availableEnd) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'مدة الحجز تتجاوز فترة توافر الشقة'
+                ], 400);
+            }
+
+            $isWithinDisplayPeriod = false;
+            foreach ($apartment->displayPeriods as $period) {
+                $periodStart = Carbon::parse($period->display_start_date);
+                $periodEnd = Carbon::parse($period->display_end_date);
+
+                if ($start >= $periodStart && $end <= $periodEnd) {
+                    $isWithinDisplayPeriod = true;
+                    break;
+                }
+            }
+
+            if (!$isWithinDisplayPeriod) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'الفترة المطلوبة غير متاحة للحجز '
+                ], 400);
+            }
+
+           //التحقق من التداخل عدا الاجار الحالي
+            $overlap = Booking::where('apartment_id', $apartment->id)
+                ->where('id', '!=', $booking->id) // استثناء الحجز الحالي
+                ->where('status', 'accepted')
+                ->where(function ($q) use ($start, $end) {
+                    $q->whereBetween('start_date', [$start, $end])
+                        ->orWhereBetween('end_date', [$start, $end])
+                        ->orWhere(function ($q2) use ($start, $end) {
+                            $q2->where('start_date', '<=', $start)
+                                ->where('end_date', '>=', $end);
+                        });
+                })
+                ->exists();
+
+            if ($overlap) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'هناك حجز مقبول آخر في نفس الفترة'
+                ], 409);
+            }
+
+
+            $days = $start->diffInDays($end) + 1;
+
+            $totalPrice = $apartment->price *$days ;
+            $booking->update([
+                'start_date' => $request->start_date,
+                'end_date' => $request->end_date,
+                'total_price' => $totalPrice,
+                'status' => 'pending'
+            ]);
+
+
             return response()->json([
-                'status'=>false,
-                'message'=>'مدة الحجز تتجاوز فترة توافر الشقة!'
-            ],400);
+                'status' => true,
+                'message' => 'تم تعديل الحجز بنجاح وبانتظار موافقة المالك',
+                'data' =>   $booking->fresh(['apartment', 'tenant'])
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'حدث خطأ أثناء تعديل الحجز',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $days = $start->diffInDays($end) + 1;
-        $dailyPrice = $apartment->price / 30;
-        $totalPrice = $dailyPrice * $days;
-
-        $booking->update([
-            'start_date'=>$request->start_date,
-            'end_date'=>$request->end_date,
-            'total_price'=>$totalPrice,
-            'status'=>'pending'
-        ]);
-
-        return response()->json(['status'=>true,
-            'message'=>'تم تعديل الحجز بنجاح',
-            'data'=>$booking
-        ]);
     }
 
     // عرض جميع حجوزات المستأجر

@@ -6,7 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Rating extends Model
 {
-protected $guarded=[];
+    protected $fillable = [
+        'user_id',
+        'apartment_id',
+        'stars',
+        'comment',
+    ];
+
+    protected $casts = [
+        'stars' => 'integer',
+    ];
+
+    protected $guarded=[];
 
     public function user()
     {
