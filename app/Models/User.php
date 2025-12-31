@@ -107,5 +107,8 @@ class User extends Authenticatable
     public function bookings(): HasMany
     {
         return $this->hasMany(Booking::class,'tenant_id');
+    }        public function Message()
+    {
+        return $this->hasMany(Message::class);
     }
 }

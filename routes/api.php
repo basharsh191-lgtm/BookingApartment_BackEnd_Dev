@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\OwnerNewController;
 
 use App\Http\Controllers\ProfileController;
@@ -44,7 +45,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // عرش شقق المالك
     Route::get('/owner/apartments', [OwnerNewController::class, 'ownerApartments']);
 });
-
 // المستأجر (TenantController)
 Route::middleware('auth:sanctum')->group(function () {
     // حجز شقة
@@ -80,4 +80,9 @@ Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 //عرض البروفايل
 Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
+//المحادثة بين شخصين
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/messages/send', [MessageController::class, 'sender']);
+    Route::get('/messages/{receiver_id}', [MessageController::class, 'conversation']);
+});
 
