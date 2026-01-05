@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use App\Models\favorit;
+use App\Notifications\RentalCancelled;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,45 +15,83 @@ use Illuminate\Support\Facades\Auth;
 class TenantController extends Controller
 {
 
-    // عرض كل الحجوزات للمستأجر
 
     public function cancel($id): JsonResponse
     {
-        $booking = Booking::find($id);
+        $booking = Booking::with(['apartment.owner'])->find($id);
 
-        if (!$booking || $booking->status === 'canceled') {
-            return response()->json(['status' => false, 'message' => 'الحجز غير موجود'], 404);
+        if (!$booking || $booking->status === 'cancelled') {
+            return response()->json([
+                'status' => false,
+                'message' => 'Booking not found'
+            ], 404);
         }
 
-        // تحقق أن المستأجر هو من أنشأ الحجز
-        if ($booking->tenant_id != Auth::id()) {
-            return response()->json(['status' => false, 'message' => 'غير مصرح لك بإلغاء هذا الحجز'], 403);
+        // Check that the tenant is the one who created the booking
+        if ($booking->tenant_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'You are not authorized to cancel this booking'
+            ], 403);
         }
 
-        // إذا كان الحجز "بانتظار الموافقة" → نحذف مباشرة
+        $tenant = Auth::user();
+        $owner  = $booking->apartment?->owner;
+
         if ($booking->status === 'pending') {
+
+            if ($owner) {
+                $owner->notify(
+                    new RentalCancelled(
+                        $tenant,
+                        $booking,
+                        'A rental request was cancelled before approval'
+                    )
+                );
+            }
+
             $booking->delete();
+
             return response()->json([
                 'status' => true,
-                'message' => 'تم حذف الحجز قبل الموافقة'
+                'message' => 'Booking was deleted before approval'
             ]);
         }
-        // إذا كان الحجز موافَق عليه → نلغيه ونرسل إشعار للمالك
+
         if ($booking->status === 'accepted') {
 
             $booking->update(['status' => 'cancelled']);
 
+            if ($owner) {
+                $owner->notify(
+                    new RentalCancelled(
+                        $tenant,
+                        $booking,
+                        'An approved booking has been cancelled'
+                    )
+                );
+            }
+
+            $tenant->notify(
+                new RentalCancelled(
+                    $tenant,
+                    $booking,
+                    'Your booking has been cancelled successfully'
+                )
+            );
+
             return response()->json([
                 'status' => true,
-                'message' => 'تم إلغاء الحجز وإعلام المالك'
+                'message' => 'Booking cancelled and owner notified'
             ]);
-
         }
-        // إذا كان مرفوض أو ملغي بالأصل
-        return response()->json(['status' => false,
-            'message' => 'لا يمكن إلغاء هذا الحجز'], 400);
 
+        return response()->json([
+            'status' => false,
+            'message' => 'This booking cannot be cancelled'
+        ], 400);
     }
+
     public function updateBooking(Request $request, $id): JsonResponse
     {
         try {

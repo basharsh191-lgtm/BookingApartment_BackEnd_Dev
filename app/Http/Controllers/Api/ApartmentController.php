@@ -5,16 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ApartmentDetailResource;
 use App\Models\ApartmentDetail;
-use App\Models\Apartment_details;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ApartmentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+/* Display a listing of the resource.
+*/
     public function index()
     {
         $apartments = ApartmentDetail::with([
@@ -27,6 +25,7 @@ class ApartmentController extends Controller
         $response = $apartments->map(function ($apartment) {
             return [
                 'id' => $apartment->id,
+                //'owner_id' => $apartment->owner_id,
                 'apartment_description' => $apartment->apartment_description,
                 'floorNumber' => $apartment->floorNumber,
                 'roomNumber' => $apartment->roomNumber,
@@ -49,28 +48,24 @@ class ApartmentController extends Controller
     }
 
 
-    /**
-     * Store a newly created resource in storage.
-     */
-
-
-    /**
-     * Display the specified resource.
-     */
     public function show(ApartmentDetail $apartmentDetail): JsonResponse
     {
         $apartmentDetail->load([
+            'owner:id,FirstName,LastName,mobile',
             'ratings.user',
             'images',
             'governorate',
             'displayPeriods'
         ]);
 
-        $owner = User::select('id', 'FirstName', 'LastName', 'mobile')
+
+        $owner = User::select('id')
             ->find($apartmentDetail->owner_id);
 
         $response = [
             'id' => $apartmentDetail->id,
+            'owner_id' => $apartmentDetail->owner?->id,
+
             'apartment_description' => $apartmentDetail->apartment_description,
             'floorNumber' => $apartmentDetail->floorNumber,
             'roomNumber' => $apartmentDetail->roomNumber,
@@ -84,11 +79,6 @@ class ApartmentController extends Controller
             'scheduled_for_deletion' => $apartmentDetail->scheduled_for_deletion,
             'images' => $apartmentDetail->images,
             'displayPeriods' => $apartmentDetail->displayPeriods,
-            'owner_info' => [
-                'FirstName' => $owner->FirstName ?? null,
-                'LastName' => $owner->LastName ?? null,
-                'mobile' => $owner->mobile ?? null,
-            ],
             'ratings' => $apartmentDetail->ratings()->with('user')->get()->map(function($rating) {
                 return [
                     'id' => $rating->id,
@@ -108,10 +98,8 @@ class ApartmentController extends Controller
             'data' => $response
         ]);
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
+/* Update the specified resource in storage.
+*/
     public function update(Request $request, string $id)
     {
         //
@@ -125,6 +113,7 @@ class ApartmentController extends Controller
     {
         //
     }
+
 
     public function filterApartment(Request $request)
     {
@@ -186,4 +175,3 @@ class ApartmentController extends Controller
         ], 200);
     }
 }
-

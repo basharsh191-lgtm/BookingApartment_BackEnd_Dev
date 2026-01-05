@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\ApartmentController;
 use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OwnerNewController;
 
 use App\Http\Controllers\ProfileController;
@@ -79,10 +80,16 @@ Route::get('/apartments/{apartmentDetail}', [ApartmentController::class, 'show']
 //عرض التقييم الخاص بالشقة
 Route::get('/apartments/{apartmentDetail}/ratings', [RatingController::class, 'showRating']);
 //عرض البروفايل
-Route::get('showProfile/{id}',[ProfileController::class,'showProfile']);
+Route::get('showProfile/{id}', [ProfileController::class, 'showProfile']);
 //المحادثة بين شخصين
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/send', [MessageController::class, 'sender']);
     Route::get('/messages/{receiver_id}', [MessageController::class, 'conversation']);
+    //عرض كل الاشعارات
+    Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
+    //جعل الاشعار مقروء
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    //جعل كل الاشعارات مقروءة
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 });
 

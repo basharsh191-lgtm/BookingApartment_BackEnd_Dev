@@ -84,11 +84,11 @@ class User extends Authenticatable
         ];
     }
 
-    public function Apartment_detail(): HasMany
-    {
-        return $this->hasMany(ApartmentDetail::class,'apartment_id');
-    }
 
+    public function apartmentDetails(): HasMany
+    {
+        return $this->hasMany(ApartmentDetail::class, 'owner_id'); // owner_id هو foreign key
+    }
     public function profile()
     {
         return $this->hasOne(Profile::class);
@@ -111,4 +111,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Message::class);
     }
+
 }

@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\apartment_detail;
+use App\Notifications\ApartmentDeletionNotification;
+
+use App\Notifications\ApartmentUpdated;
+use App\Notifications\NewRentalRequest;
+use App\Notifications\RentalRequestAccepted;
+use App\Notifications\RentalRequestRejected;
+use App\Notifications\RentalCancelled;
+
 use App\Models\ApartmentDetail;
 use App\Models\Booking;
 use App\Models\Province;
@@ -19,7 +26,7 @@ class OwnerNewController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        // 1. التحقق من البيانات
+        // التحقق من البيانات
         $validated = $request->validate([
             'apartment_description' => 'required|string|max:255',
             'floorNumber' => 'required|integer|min:0',
@@ -35,11 +42,11 @@ class OwnerNewController extends Controller
             'price' => 'required|numeric|min:0',
         ]);
 
-        //  إضافة بيانات المالك
+        // إضافة بيانات المالك
         $validated['owner_id'] = Auth::id();
         $validated['scheduled_for_deletion'] = false;
 
-        //  إنشاء الشقة
+        // إنشاء الشقة
         $apartment = ApartmentDetail::create($validated);
 
         // حفظ الصور
@@ -52,44 +59,18 @@ class OwnerNewController extends Controller
             }
         }
 
-        $apartment->load([
-            'images',
-            'governorate',
-            'displayPeriods',
-            'user:id,FirstName,LastName,mobile'
-        ]);
+        // تحميل العلاقات بدون فلترة الأعمدة
+        $apartment->load(['images', 'governorate', 'displayPeriods', 'user']);
 
-        //  تنسيق النتيجة
-        $responseData = [
-            'id' => $apartment->id,
-            'apartment_description' => $apartment->apartment_description,
-            'floorNumber' => $apartment->floorNumber,
-            'roomNumber' => $apartment->roomNumber,
-            'free_wifi' => $apartment->free_wifi,
-            'available_from' => $apartment->available_from,
-            'available_to' => $apartment->available_to,
-            'city' => $apartment->city,
-            'governorate' => $apartment->governorate,
-            'area' => $apartment->area,
-            'price' => $apartment->price,
-            'scheduled_for_deletion' => $apartment->scheduled_for_deletion,
-            'images' => $apartment->images,
-            'displayPeriods' => $apartment->displayPeriods,
-            'owner_info' => [
-                'FirstName' => $apartment->user->FirstName ?? null,
-                'LastName' => $apartment->user->LastName ?? null,
-                'mobile' => $apartment->user->mobile ?? null,
-            ]
-        ];
+        Auth::user()->notify(new ApartmentUpdated($apartment));
 
-        // إرجاع النتيجة
+        // إرجاع البيانات كما هي بدون تنسيق
         return response()->json([
             'status' => true,
-            'message' => 'تم إضافة الشقة بنجاح مع فترة معروضة كاملة',
-            'data' => $responseData
+            'message' => 'تم إضافة الشقة بنجاح',
+            'data' => $apartment
         ], 201);
     }
-
     /**
      * تعديل بيانات الشقة
      */
@@ -137,6 +118,8 @@ class OwnerNewController extends Controller
                 ]);
             }
         }
+
+        Auth::user()->notify(new ApartmentUpdated($apartment));
 
         return response()->json([
             'message' => 'تم تعديل الشقة بنجاح',
@@ -216,23 +199,68 @@ class OwnerNewController extends Controller
             ->firstOrFail();
 
         $hasActiveBookings = Booking::where('apartment_id', $id)
-            ->whereIn('status', ['accepted', 'pending'])
+            ->whereIn('status', ['accepted', 'pending', 'approved'])
             ->where('end_date', '>=', Carbon::now())
             ->exists();
 
         if ($hasActiveBookings) {
+            // حساب معلومات الحجوزات النشطة
+            $activeBookingsCount = Booking::where('apartment_id', $id)
+                ->whereIn('status', ['accepted', 'pending', 'approved'])
+                ->where('end_date', '>=', Carbon::now())
+                ->count();
+
+            $latestEndDate = Booking::where('apartment_id', $id)
+                ->whereIn('status', ['accepted', 'pending', 'approved'])
+                ->where('end_date', '>=', Carbon::now())
+                ->max('end_date');
+
+            // تحديث حالة الشقة
             $apartment->update([
-                'scheduled_for_deletion' => true
+                'scheduled_for_deletion' => true,
             ]);
+
+            // رسالة الإشعار
+            $message = 'Apartment "' . $apartment->apartment_description .
+                '" has ' . $activeBookingsCount .
+                ' active booking(s). It will be automatically deleted after the last booking ends';
+
+            if ($latestEndDate) {
+                $message .= ' (on ' . Carbon::parse($latestEndDate)->format('Y-m-d') . ')';
+
+                // إضافة حقل تاريخ الحذف المتوقع (اختياري)
+                $apartment->update([
+                    'deletion_scheduled_date' => Carbon::parse($latestEndDate)->addDay()
+                ]);
+            }
+
+            // إرسال إشعار للمالك
+            Auth::user()->notify(new ApartmentDeletionNotification(
+                $apartment,
+                'scheduled',
+                $message
+            ));
 
             return response()->json([
                 'success' => true,
-                'message' => 'الشقة مؤجرة حالياً، سيتم حذفها تلقائياً بعد انتهاء آخر حجز'
+                'message' => 'الشقة مؤجرة حالياً، سيتم حذفها تلقائياً بعد انتهاء آخر حجز',
+                'active_bookings_count' => $activeBookingsCount,
+                'latest_end_date' => $latestEndDate,
+                'scheduled_for_deletion' => true,
+                'note' => 'Command "apartments:delete-scheduled" will handle the automatic deletion',
             ]);
         }
 
         // لا يوجد أي حجز فعّال → حذف فوري
         Booking::where('apartment_id', $id)->delete();
+
+        // إرسال إشعار قبل الحذف
+        Auth::user()->notify(new ApartmentDeletionNotification(
+            $apartment,
+            'deleted',
+            'Apartment "' . $apartment->apartment_description . '" has been deleted successfully.'
+        ));
+
         $apartment->delete();
 
         return response()->json([
@@ -291,13 +319,19 @@ class OwnerNewController extends Controller
         // تحديث حالة الحجز
         $booking->update(['status' => 'accepted']);
 
-        // ⭐⭐⭐ **تقسيم الفترات المعروضة**
+
         $this->splitDisplayPeriodsAfterBooking(
             $booking->apartment,
             Carbon::parse($booking->start_date),
             Carbon::parse($booking->end_date)
         );
 
+        if ($booking->tenant) {
+            $booking->tenant->notify(new RentalRequestAccepted(
+                $booking->apartment,
+                Auth::user()
+            ));
+        }
         return response()->json([
             'status' => true,
             'message' => 'تم قبول الحجز وتحديث الفترات المعروضة',
@@ -373,6 +407,13 @@ class OwnerNewController extends Controller
         }
 
         $booking->update(['status' => 'rejected']);
+
+        if ($booking->tenant) {
+            $booking->tenant->notify(new RentalRequestRejected(
+                $booking->apartment,
+                Auth::user(),
+            ));
+        }
 
         return response()->json([
             'status' => true,

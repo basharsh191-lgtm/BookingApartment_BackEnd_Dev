@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ApartmentDetail extends Model
 {
-    protected $table = 'apartment_details';
+//    protected $table = 'apartment_details';
 
     protected $attributes = [
         'scheduled_for_deletion' => false,
@@ -69,7 +69,7 @@ public function scopeAvailableForEntirePeriod($query, ?string $startDate, ?strin
 }
 
 
-    public function user()
+    public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
