@@ -60,7 +60,7 @@ class OwnerNewController extends Controller
         }
 
         // تحميل العلاقات بدون فلترة الأعمدة
-        $apartment->load(['images', 'governorate', 'displayPeriods', 'user']);
+        $apartment->load(['images', 'governorate', 'displayPeriods', 'owner']);
 
         Auth::user()->notify(new ApartmentUpdated($apartment));
 
@@ -275,6 +275,9 @@ class OwnerNewController extends Controller
     /**
      * قبول الحجز وتقسيم الفترات المعروضة
      */
+    /**
+     * قبول الحجز وتقسيم الفترات المعروضة - النسخة المحسنة
+     */
     public function approve($id): JsonResponse
     {
         $booking = Booking::with('apartment', 'apartment.displayPeriods')->findOrFail($id);
@@ -319,8 +322,8 @@ class OwnerNewController extends Controller
         // تحديث حالة الحجز
         $booking->update(['status' => 'accepted']);
 
-
-        $this->splitDisplayPeriodsAfterBooking(
+        // تقسيم الفترات المعروضة مع دمج الفترات المتداخلة
+        $this->splitAndMergeDisplayPeriods(
             $booking->apartment,
             Carbon::parse($booking->start_date),
             Carbon::parse($booking->end_date)
@@ -332,57 +335,224 @@ class OwnerNewController extends Controller
                 Auth::user()
             ));
         }
+
         return response()->json([
             'status' => true,
             'message' => 'تم قبول الحجز وتحديث الفترات المعروضة',
-            'data' => $booking->fresh(['apartment.displayPeriods'])
+            'data' => $booking->fresh(['apartment.displayPeriods', 'apartment'])
         ]);
     }
 
     /**
-     * تقسيم الفترات المعروضة بعد الحجز
+     * تقسيم الفترات المعروضة مع دمج الفترات المتداخلة
      */
-    private function splitDisplayPeriodsAfterBooking($apartment, Carbon $bookingStart, Carbon $bookingEnd): void
+    private function splitAndMergeDisplayPeriods($apartment, Carbon $bookingStart, Carbon $bookingEnd): void
     {
-        $displayPeriods = $apartment->displayPeriods()->orderBy('display_start_date')->get();
+        \Log::info('Starting splitAndMergeDisplayPeriods', [
+            'apartment_id' => $apartment->id,
+            'booking_start' => $bookingStart->toDateString(),
+            'booking_end' => $bookingEnd->toDateString(),
+            'current_periods_count' => $apartment->displayPeriods()->count()
+        ]);
+
+        // 1. الحصول على جميع الفترات الحالية
+        $displayPeriods = $apartment->displayPeriods()
+            ->orderBy('display_start_date')
+            ->get();
+
+        // 2. إذا لم توجد فترات، أنشئ فترة من التواريخ الرئيسية
+        if ($displayPeriods->isEmpty() && $apartment->available_from && $apartment->available_to) {
+            $apartment->displayPeriods()->create([
+                'display_start_date' => $apartment->available_from,
+                'display_end_date' => $apartment->available_to,
+            ]);
+            $displayPeriods = $apartment->displayPeriods()->orderBy('display_start_date')->get();
+        }
+
+        $newPeriods = [];
 
         foreach ($displayPeriods as $period) {
             $periodStart = Carbon::parse($period->display_start_date);
             $periodEnd = Carbon::parse($period->display_end_date);
 
-            // التحقق إذا كان الحجز داخل هذه الفترة المعروضة
-            if ($bookingStart >= $periodStart && $bookingEnd <= $periodEnd) {
+            \Log::info('Processing period', [
+                'period_id' => $period->id,
+                'period_start' => $periodStart->toDateString(),
+                'period_end' => $periodEnd->toDateString()
+            ]);
 
-                // الحجز في منتصف الفترة
-                if ($bookingStart > $periodStart && $bookingEnd < $periodEnd) {
-                    // تحديث نهاية الفترة الأولى
-                    $period->update([
-                        'display_end_date' => $bookingStart->copy()->subDay()
-                    ]);
+            // 3. التحقق من التداخل مع الحجز
+            // الحجز خارج هذه الفترة تماماً
+            if ($bookingEnd < $periodStart || $bookingStart > $periodEnd) {
+                \Log::info('No overlap - keeping period as is');
+                $newPeriods[] = [
+                    'start' => $periodStart,
+                    'end' => $periodEnd
+                ];
+                continue;
+            }
 
-                    // إنشاء الفترة الثانية
-                    $apartment->displayPeriods()->create([
-                        'display_start_date' => $bookingEnd->copy()->addDay(),
-                        'display_end_date' => $periodEnd,
-                    ]);
-                } //  الحجز من بداية الفترة
-                elseif ($bookingStart->eq($periodStart) && $bookingEnd < $periodEnd) {
-                    $period->update([
-                        'display_start_date' => $bookingEnd->copy()->addDay(),
-                    ]);
-                } //  الحجز حتى نهاية الفترة
-                elseif ($bookingStart > $periodStart && $bookingEnd->eq($periodEnd)) {
-                    $period->update([
-                        'display_end_date' => $bookingStart->copy()->subDay()
-                    ]);
-                } //  الحجز يغطي الفترة كاملة
-                elseif ($bookingStart->eq($periodStart) && $bookingEnd->eq($periodEnd)) {
-                    $period->delete();
-                }
+            // 4. الحجز داخل هذه الفترة - تقسيمها
+            // جزء قبل الحجز
+            if ($periodStart < $bookingStart) {
+                \Log::info('Adding period before booking', [
+                    'start' => $periodStart->toDateString(),
+                    'end' => $bookingStart->copy()->subDay()->toDateString()
+                ]);
+                $newPeriods[] = [
+                    'start' => $periodStart,
+                    'end' => $bookingStart->copy()->subDay()
+                ];
+            }
 
-                break;
+            // جزء بعد الحجز
+            if ($periodEnd > $bookingEnd) {
+                \Log::info('Adding period after booking', [
+                    'start' => $bookingEnd->copy()->addDay()->toDateString(),
+                    'end' => $periodEnd->toDateString()
+                ]);
+                $newPeriods[] = [
+                    'start' => $bookingEnd->copy()->addDay(),
+                    'end' => $periodEnd
+                ];
             }
         }
+
+        // 5. دمج الفترات المتجاورة
+        $mergedPeriods = $this->mergeAdjacentPeriods($newPeriods);
+
+        Log::info('Merged periods', [
+            'count' => count($mergedPeriods),
+            'periods' => array_map(function ($p) {
+                return [
+                    'start' => $p['start']->toDateString(),
+                    'end' => $p['end']->toDateString()
+                ];
+            }, $mergedPeriods)
+        ]);
+
+        // 6. حذف الفترات القديمة وخلق الجديدة
+        $apartment->displayPeriods()->delete();
+
+        foreach ($mergedPeriods as $period) {
+            $apartment->displayPeriods()->create([
+                'display_start_date' => $period['start']->toDateString(),
+                'display_end_date' => $period['end']->toDateString(),
+            ]);
+        }
+
+        // 7. تحديث التواريخ الرئيسية
+        $this->updateMainAvailabilityDates($apartment);
+    }
+
+    /**
+     * دمج الفترات المتجاورة أو المتداخلة
+     */
+    private function mergeAdjacentPeriods(array $periods): array
+    {
+        if (empty($periods)) {
+            return [];
+        }
+
+        // ترتيب الفترات حسب تاريخ البدء
+        usort($periods, function ($a, $b) {
+            return $a['start'] <=> $b['start'];
+        });
+
+        $merged = [];
+        $current = $periods[0];
+
+        for ($i = 1; $i < count($periods); $i++) {
+            $next = $periods[$i];
+
+            // التحقق إذا كانت الفترات متداخلة أو متجاورة
+            $currentEndPlusOne = $current['end']->copy()->addDay();
+
+            if ($currentEndPlusOne >= $next['start']) {
+                // دمج الفترات
+                $current['end'] = $current['end']->greaterThan($next['end'])
+                    ? $current['end']
+                    : $next['end'];
+            } else {
+                // حفظ الفترة الحالية وبدء فترة جديدة
+                $merged[] = [
+                    'start' => $current['start'],
+                    'end' => $current['end']
+                ];
+                $current = $next;
+            }
+        }
+
+        // إضافة الفترة الأخيرة
+        $merged[] = [
+            'start' => $current['start'],
+            'end' => $current['end']
+        ];
+
+        return $merged;
+    }
+
+    /**
+     * تحديث التواريخ الرئيسية للشقة
+     */
+    private function updateMainAvailabilityDates($apartment): void
+    {
+        $firstPeriod = $apartment->displayPeriods()
+            ->orderBy('display_start_date')
+            ->first();
+
+        $lastPeriod = $apartment->displayPeriods()
+            ->orderBy('display_end_date', 'desc')
+            ->first();
+
+        if ($firstPeriod && $lastPeriod) {
+            $apartment->update([
+                'available_from' => $firstPeriod->display_start_date,
+                'available_to' => $lastPeriod->display_end_date
+            ]);
+
+            \Log::info('Updated main availability dates', [
+                'available_from' => $firstPeriod->display_start_date,
+                'available_to' => $lastPeriod->display_end_date
+            ]);
+        } else {
+            // لا توجد فترات متاحة
+            $apartment->update([
+                'available_from' => null,
+                'available_to' => null
+            ]);
+
+            \Log::info('No available periods - set dates to null');
+        }
+
+        // تحديث النموذج من قاعدة البيانات
+        $apartment->refresh();
+    }
+
+    /**
+     * دالة خاصة لتنظيف الفترات المكررة في شقة محددة
+     */
+    public function fixDuplicatePeriods($apartmentId): JsonResponse
+    {
+        $apartment = ApartmentDetail::with('displayPeriods')->findOrFail($apartmentId);
+
+        if ($apartment->owner_id !== Auth::id()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'غير مصرح لك'
+            ], 403);
+        }
+
+        \Log::info('Fixing duplicate periods for apartment', ['apartment_id' => $apartmentId]);
+
+        // استخدام نفس منطق الدمج
+        $this->splitAndMergeDisplayPeriods($apartment, Carbon::now()->addYear(), Carbon::now()->addYear());
+
+        return response()->json([
+            'status' => true,
+            'message' => 'تم تنظيف الفترات المكررة بنجاح',
+            'data' => $apartment->fresh('displayPeriods')
+        ]);
     }
 
     /**
