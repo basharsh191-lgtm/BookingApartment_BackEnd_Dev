@@ -85,6 +85,7 @@ Route::get('showProfile/{id}', [ProfileController::class, 'showProfile']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/messages/send', [MessageController::class, 'sender']);
     Route::get('/messages/{receiver_id}', [MessageController::class, 'conversation']);
+    Route::get('/ownerRequests', [MessageController::class, 'ownerRequests']);
     //عرض كل الاشعارات
     Route::get('/notifications', [NotificationController::class, 'getUserNotifications']);
     //جعل الاشعار مقروء

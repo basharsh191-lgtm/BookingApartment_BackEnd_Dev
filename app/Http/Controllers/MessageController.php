@@ -45,6 +45,11 @@ class MessageController extends Controller
         return response()->json([
             'data'=>$messages,
         ]);
+    }    public function ownerRequests()
+    {
+        $ownerId=Auth::id();
+        $orders=Message::with('sender:id,FirstName,LastName,mobile')->where('receiver_id',$ownerId)->orderBy('created_at','DESC')->get();
+        return response()->json(['succsess'=>true,'dara'=>$orders], 200);
     }
 
 }
